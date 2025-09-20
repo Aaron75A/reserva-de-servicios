@@ -43,5 +43,6 @@ def ejecutar_menu():
         else:
             print("Opción inválida. Intente de nuevo.")
 '''
-# Ejecutar el menú
+# Este seria el menu base desde donde partiremos y aunque se vea mas tedioso pues es con lo que mejor se trabajar, hay que crear funciones y listas con los especialistas y los servicios
+
 ejecutar_menu()
