@@ -8,8 +8,8 @@ servicios = []
 
 #Servicios predefinidos para que no inicie el programa vacio.
 #IDuracion es la parte numerica de la duracion, mientras que SDuracion es la parte en texto, se usa por accesibilidad.
-servicio1 = [{'Nombre':'x', 'IDuracion':20, 'SDuracion': "min", 'Costo': 2000}, {'Empleados':[]}]
-servicio2 = [{'Nombre':'y', 'IDuracion':30, 'SDuracion': "min", 'Costo': 15000}, {'Empleados':[]}]
+servicio1 = [{'Nombre':'Cortes de cabello', 'IDuracion':20, 'SDuracion': "min", 'Costo': 2000}, {'Empleados':[]}]
+servicio2 = [{'Nombre':'Cortes de Barba', 'IDuracion':30, 'SDuracion': "min", 'Costo': 15000}, {'Empleados':[]}]
 
 # Los servicios se anaden como copias a la lista para evitar errores con la memoria del programa
 # Por ejemplo, si anado dos veces servicio1 y modifico informacion de este se modificara en las dos copias que anadi, usar .copy() evita esto.
@@ -41,7 +41,7 @@ def creacion_citas(info_servicio, horario):
     duracion = 0
     ultima_jornada = horario[0] * 60
     lista_horas = []
-    if(info_servicio['SDuracion'] == "hr"): duracion = info_servicio['IDuracion'] * 60
+    if(info_servicio['SDuracion'] == "hr"): duracion = info_servicio['IDuracion'] [i]* 60
     elif(info_servicio['SDuracion'] == "min"): duracion = info_servicio['IDuracion']
     tiempo_jornada = (horario[1]*60) - (horario[0]*60)
     for i in range(0, int(tiempo_jornada / duracion)):
@@ -60,9 +60,6 @@ def creacion_citas(info_servicio, horario):
         x[1] = str(int(x[1])) + ":" + x2_minutos
         lista_horas.append(x)
     return lista_horas
-
-        
-
 
 def crear_servicio():
     nombre = input("Ingrese el nombre del servicio: ")
@@ -151,6 +148,7 @@ def ingresar_especialista():
         cel = int(input("Celular: "))
         email = input("Email: ")
         horario = input("Horario (Se usa formato 24hr y separacion por '-', eje: 8:00-15:20): ")
+        reservas = []
         horas = horario_empleado(horario)
         lista_horas = creacion_citas(servicios[x][0], horas)
 
@@ -161,7 +159,8 @@ def ingresar_especialista():
             'Cel': cel,
             'Email': email,
             'Disponibilidad': lista_horas,
-            'Horario': horario
+            'Horario': horario,
+            'Reservas': reservas
             }
 
         servicios[x][1]['Empleados'].append(empleado.copy())
@@ -245,44 +244,82 @@ empleado1 = {
         'Cel':'3004929192',
         'Email':'pepito@hotmail.com',
         'Horario': '9:00-17:00',
-        'Disponibilidad': creacion_citas(servicios[0][0], horario_empleado('9:00-17:00')),
+        'Disponibilidad':creacion_citas(servicios[0][0], horario_empleado('9:00-17:00')),
         'Reservas': [{'Cliente': 'x', 'Fecha': '08/9/23', 'Hora': 20}] # Solo se aceptan reservas dentro del horario, si la lista esta vacia se puede borrar servicio/empleado.
         }
 
 
 servicio1[1]['Empleados'].append(empleado1.copy()) #Notese nuevamente el uso de .copy()
-servicio1[1]['Empleados'].append(empleado1.copy())
-servicio1[1]['Empleados'][1]['Nombre'] = "Juanito"
 
 
 #Usuario por default, nuevamente no tiene mayor fin mas que dar practicidad a la hora de testear.
-usuario = {
-        'Nombre': 'Juan',
-        'Reservas': [{'Nombre Empleado': empleado1['Nombre'], 'Fecha': 'Jueves', 'Hora': 10}]
-        }
+usuarios = []
 
 
 # Funcion imcompleta, no se debe de usar.
 def anadir_reserva():
+    nombre_usuario = input("Ingrese el nombre del cliente: ")
+    nuevo_usuario = {
+        'Nombre': nombre_usuario,
+        'Reservas': []
+    }
+    usuarios.append(nuevo_usuario.copy())
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i][0]['Nombre']}\n")
-
     servicio = int(input("Que servicio desea: "))
     servicio -= 1
     for i in range(0, len(servicios[servicio][1]['Empleados'])):
-        print(f"[{i+1}] Empleado: {servicios[servicio][1]['Empleados'][i]}")
+        print(f"\nEmpleado {i+1}: ")
+        print(f"Nombres: {servicios[servicio][1]['Empleados'][i]['Nombre']}")
+        print(f"Apellidos: {servicios[servicio][1]['Empleados'][i]['Apellidos']}")
+        print(f"Cedula: {servicios[servicio][1]['Empleados'][i]['Cedula']}")
+        print(f"Celular: {servicios[servicio][1]['Empleados'][i]['Cel']}")
+        print(f"Email: {servicios[servicio][1]['Empleados'][i]['Email']}")
     empleado = (int(input("Seleccione el empleado que desea: ")))
     empleado -= 1
     fecha = input("En que fecha lo desea: ")
-    hora = input("En que hora lo desea: ")
-    reserva_empleado = {'Cliente': usuario['Nombre'], 'Fecha':fecha, 'Hora':hora}
+    for i in range(0, len(servicios[servicio][1]['Empleados'][i]['Disponibilidad'])):
+        print(f"Horario {i+1}: {servicios[servicio][1]['Empleados'][empleado]['Disponibilidad'][i]}\n")
+    hora = int(input("En que hora lo desea: ")) -1
+    hora_seleccionada = servicios[servicio][1]['Empleados'][empleado]['Disponibilidad'][hora]
+    ocupado = False
+    for r in servicios[servicio][1]['Empleados'][empleado]['Reservas']:
+        if r['Fecha'] == fecha and r['Hora'] == hora_seleccionada:
+            ocupado = True
+            break
+    if ocupado:
+        print(f"\n El horario {hora_seleccionada} en la fecha {fecha} NO está disponible con {servicios[servicio][1]['Empleados'][empleado]['Nombre']}.")
+        return
+    reserva_empleado = {'Cliente': usuarios[-1]['Nombre'], 
+                        'Fecha':fecha, 'Hora':hora_seleccionada}
     servicios[servicio][1]['Empleados'][empleado]['Reservas'].append(reserva_empleado.copy())
-    reserva_cliente = {'Empleado': servicios[servicio][1]['Empleados'][empleado]['Nombre'], 'Fecha':fecha, 'Hora':hora}
-    usuario['Reservas'].append(reserva_cliente.copy())
+    reserva_cliente = {'Empleado': servicios[servicio][1]['Empleados'][empleado]['Nombre'], 
+                        'Fecha':fecha, 'Hora':hora_seleccionada}
+    usuarios[-1]['Reservas'].append(reserva_cliente.copy())
 
-    print(servicio1[1]['Empleados'][empleado]['Reservas'])
- 
-  
+
+    x = len(usuarios[-1]['Reservas']) - 1
+    print("RESERVA REALIZADA...\n")
+    print(f"Nombres de Empleado: {usuarios[-1]['Reservas'][x]['Empleado']}")
+    print(f"Fecha: {usuarios[-1]['Reservas'][x]['Fecha']}")
+    print(f"Hora: {usuarios[-1]['Reservas'][x]['Hora']}")
+
+
+def mostrar_reservas():   #Con esta funcion voy a mostrar las reservas de todos los servicios, me tocó aprender a usar 'enumerate'
+    print("\n----->LISTA DE TODAS LAS RESERVAS<-----\n")
+    for s, servicio in enumerate(servicios):  # Con esto recorremos todos los servicios
+        print(f"Servicio {s+1}: {servicio[0]['Nombre']}")
+        empleados = servicio[1]['Empleados']
+        for e, empleado in enumerate(empleados):  # y esto para recorrer empleados de cada servicio
+            if len(empleado['Reservas']) > 0:
+                print(f"  Empleado {e+1}: {empleado['Nombre']} {empleado['Apellidos']}")
+                for r, reserva in enumerate(empleado['Reservas']):
+                    print(f"    Reserva {r+1}: Cliente: {reserva['Cliente']}, Fecha: {reserva['Fecha']}, Hora: {reserva['Hora']}")
+            else:
+                print(f"  Empleado {e+1}: {empleado['Nombre']} {empleado['Apellidos']} (Sin reservas)")
+        print()  
+
+
 def mostrar_menu():
     while True:
 
@@ -302,13 +339,13 @@ def mostrar_menu():
     
         opcion = int(input("Seleccione una opción: "))
         if opcion == 1:
-            print()
+            anadir_reserva()
         elif opcion == 2:
             print()
         elif opcion == 3:
             print()
         elif opcion == 4:
-            print()
+            mostrar_reservas()
         elif opcion == 5:
             ingresar_especialista()
         elif opcion == 6:
