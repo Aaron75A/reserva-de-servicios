@@ -279,7 +279,7 @@ def anadir_reserva():
     empleado -= 1
     fecha = input("En que fecha lo desea: ")
     for i in range(0, len(servicios[servicio][1]['Empleados'][i]['Disponibilidad'])):
-        print(f"Horario {i+1}: {servicios[servicio][1]['Empleados'][empleado]['Disponibilidad'][i]}\n")
+        print(f"Horario {i+1}: {servicios[servicio][1]['Empleados'][empleado]['Disponibilidad'][i]}")
     hora = int(input("En que hora lo desea: ")) -1
     hora_seleccionada = servicios[servicio][1]['Empleados'][empleado]['Disponibilidad'][hora]
     ocupado = False
