@@ -304,6 +304,23 @@ def anadir_reserva(user_index):
     print(f"Fecha: {usuarios[user_index]['Reservas'][-1]['Fecha']}")
     print(f"Hora: {usuarios[user_index]['Reservas'][-1]['Hora']}")
 
+#Cancelar la reserva
+def cancelar_reserva(user_index):
+        print("Lista de usuarios con reservas: \n")
+        if len(usuarios[user_index]['Reservas']) == 0:
+            print("No tienes reservas para cancelar.\n")
+            return
+        
+        for i in range(0, len(usuarios[user_index]['Reservas'])):
+            print(f"[{i+1}] {usuarios[user_index]['Reservas'][i]}")
+        
+        reserva_cancelar = int(input("¿Qué reserva desea cancelar?")) - 1 #convencion
+        if reserva_cancelar < 0 or reserva_cancelar >= len(usuarios[user_index]['Reservas']):
+            print("La reserva que seleccionaste no existe.\n")
+        else:
+            reserva_eliminada = usuarios[user_index]['Reservas'].pop(reserva_cancelar)
+            print(f"¡Tu reserva {reserva_eliminada} ha sido cancelada correctamente!\n")
+
 
 def mostrar_reservas():   #Con esta funcion voy a mostrar las reservas de todos los servicios, me tocó aprender a usar 'enumerate'
     print("\n----->LISTA DE TODAS LAS RESERVAS<-----\n")
@@ -372,7 +389,7 @@ def mostrar_menu():
         elif opcion == 2:
             print()
         elif opcion == 3:
-            print()
+            cancelar_reseva(user_index)
         elif opcion == 4:
             mostrar_reservas()
         elif opcion == 5:
