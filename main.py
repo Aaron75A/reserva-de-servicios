@@ -389,7 +389,7 @@ def mostrar_menu():
         elif opcion == 2:
             print()
         elif opcion == 3:
-            cancelar_reseva(user_index)
+            cancelar_reserva(user_index)
         elif opcion == 4:
             mostrar_reservas()
         elif opcion == 5:
