@@ -241,7 +241,7 @@ def eliminar_especialista():
             print("El empleado que usted seleccion no existe, intentelo de nuevo.\n")
 
         if(len(servicios[x][1]['Empleados'][y]['Reservas']) != 0):
-            print(f"El empleado {servicios[x][1]['Empleados'][y]['Nombre']} tiene reservas activas en este momento por lo que no es posible borrarlo del sistema, estas deben completarse o eliminarse primero.\n")
+            print(f"\nEl empleado {servicios[x][1]['Empleados'][y]['Nombre']} tiene reservas activas en este momento por lo que no es posible borrarlo del sistema, estas deben completarse o eliminarse primero.\n")
         else:
             servicios[x][1]['Empleados'].pop(y)
             print("Empleado ha sido eliminado con exito.\n")
@@ -264,17 +264,12 @@ servicio1[1]['Empleados'].append(empleado1.copy()) #Notese nuevamente el uso de 
 usuarios = []
 
 # Funcion imcompleta, no se debe de usar.
-def anadir_reserva():
-    nombre_usuario = input("Ingrese el nombre del cliente: ")
-    nuevo_usuario = {
-        'Nombre': nombre_usuario,
-        'Reservas': []
-    }
-    usuarios.append(nuevo_usuario.copy())
+def anadir_reserva(user_index):
+    print("\nEn que servicio desea realizar su reserva?: ")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i][0]['Nombre']}\n")
-    servicio = int(input("Que servicio desea: "))
-    servicio -= 1
+    servicio = int(input("Que servicio desea: ")) - 1
+    print("\nCon que empleado desea realizar su reserva?: ")
     for i in range(0, len(servicios[servicio][1]['Empleados'])):
         print(f"\nEmpleado {i+1}: ")
         print(f"Nombres: {servicios[servicio][1]['Empleados'][i]['Nombre']}")
@@ -282,12 +277,11 @@ def anadir_reserva():
         print(f"Cedula: {servicios[servicio][1]['Empleados'][i]['Cedula']}")
         print(f"Celular: {servicios[servicio][1]['Empleados'][i]['Cel']}")
         print(f"Email: {servicios[servicio][1]['Empleados'][i]['Email']}")
-    empleado = (int(input("Seleccione el empleado que desea: ")))
-    empleado -= 1
-    fecha = input("En que fecha lo desea: ")
+    empleado = (int(input("Seleccione el empleado que desea: "))) - 1
+    fecha = input("En que fecha lo desea? (se usa formato dd/mm/yy, eje: 09/03/14): ")
     for i in range(0, len(servicios[servicio][1]['Empleados'][i]['Disponibilidad'])):
         print(f"Horario {i+1}: {servicios[servicio][1]['Empleados'][empleado]['Disponibilidad'][i]}")
-    hora = int(input("En que hora lo desea: ")) -1
+    hora = int(input("En que horario lo desea?: ")) - 1
     hora_seleccionada = servicios[servicio][1]['Empleados'][empleado]['Disponibilidad'][hora]
     ocupado = False
     for r in servicios[servicio][1]['Empleados'][empleado]['Reservas']:
@@ -295,21 +289,20 @@ def anadir_reserva():
             ocupado = True
             break
     if ocupado:
-        print(f"\n El horario {hora_seleccionada} en la fecha {fecha} NO está disponible con {servicios[servicio][1]['Empleados'][empleado]['Nombre']}.")
+        print(f"\n El horario {hora_seleccionada} en la fecha {fecha} NO está disponible con {servicios[servicio][1]['Empleados'][empleado]['Nombre']}, seleccione otra fecha, hora o empleado.")
         return
-    reserva_empleado = {'Cliente': usuarios[-1]['Nombre'], 
+    reserva_empleado = {'Cliente': usuarios[user_index]['Nombre'], 
                         'Fecha':fecha, 'Hora':hora_seleccionada}
     servicios[servicio][1]['Empleados'][empleado]['Reservas'].append(reserva_empleado.copy())
     reserva_cliente = {'Empleado': servicios[servicio][1]['Empleados'][empleado]['Nombre'], 
                         'Fecha':fecha, 'Hora':hora_seleccionada}
-    usuarios[-1]['Reservas'].append(reserva_cliente.copy())
+    usuarios[user_index]['Reservas'].append(reserva_cliente.copy())
 
 
-    x = len(usuarios[-1]['Reservas']) - 1
     print("RESERVA REALIZADA...\n")
-    print(f"Nombres de Empleado: {usuarios[-1]['Reservas'][x]['Empleado']}")
-    print(f"Fecha: {usuarios[-1]['Reservas'][x]['Fecha']}")
-    print(f"Hora: {usuarios[-1]['Reservas'][x]['Hora']}")
+    print(f"Nombres de Empleado: {usuarios[user_index]['Reservas'][-1]['Empleado']}")
+    print(f"Fecha: {usuarios[user_index]['Reservas'][-1]['Fecha']}")
+    print(f"Hora: {usuarios[user_index]['Reservas'][-1]['Hora']}")
 
 
 def mostrar_reservas():   #Con esta funcion voy a mostrar las reservas de todos los servicios, me tocó aprender a usar 'enumerate'
@@ -326,11 +319,38 @@ def mostrar_reservas():   #Con esta funcion voy a mostrar las reservas de todos 
                 print(f"  Empleado {e+1}: {empleado['Nombre']} {empleado['Apellidos']} (Sin reservas)")
         print()  
 
+def crear_usuario():
+    print("\nCreando un nuevo usuario.")
+    nombre = input("Ingrese su nombre completo: ")
+    usuario = {
+            'Nombre': nombre,
+            'Reservas': []
+            }
+    usuarios.append(usuario.copy())
+    print(f"Se ha creado al usuario {usuario['Nombre']} con exito.\n")
+
+def cambiar_usuario(user_index):
+    print("\nUsuarios disponibles: ")
+    for i in range(0, len(usuarios)):
+        print(f"[{i+1}] {usuarios[i]['Nombre']}")
+    nuser = int(input("Que usuario desea usar?: ")) - 1
+    if(nuser < 0 or nuser> len(usuarios)):
+        print("El usuario que usted eligio no existe, por favor intentelo de nuevo.\n")
+        return user_index
+    else:
+        print(f"Se ha cambiado al usuario {usuarios[nuser]['Nombre']} con exito.\n")
+        return nuser
+    return user_index
 
 def mostrar_menu():
+    print("\n--- Bienvenido al sistema de gestion de servicios ---")
+    crear_usuario()
+    user_index = 0
+
     while True:
 
         print("\n--- SISTEMA DE GESTIÓN DE SERVICIOS ---")
+        print(f"Hola {usuarios[user_index]['Nombre']}, que desea realizar?")
         print("1. Ingresar reserva")
         print("2. Editar reserva")
         print("3. Cancelar reserva")
@@ -342,11 +362,13 @@ def mostrar_menu():
         print("9. Editar servicio")
         print("10. Borrar servicio")
         print("11. Informacion de un servicio.")
+        print("12. Crear nuevo usuario.")
+        print("13. Cambiar de usuario.")
         print("0. Salir")
     
         opcion = int(input("Seleccione una opción: "))
         if opcion == 1:
-            anadir_reserva()
+            anadir_reserva(user_index)
         elif opcion == 2:
             print()
         elif opcion == 3:
@@ -367,6 +389,10 @@ def mostrar_menu():
             eliminar_servicio()
         elif opcion == 11:
             informacion_servicio()
+        elif opcion == 12:
+            crear_usuario()
+        elif opcion == 13:
+            user_index = cambiar_usuario(user_index)
         elif opcion == 0:
             print("Finalizando el programa.\n")
             break
