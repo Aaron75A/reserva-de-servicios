@@ -8,8 +8,8 @@ servicios = []
 
 #Servicios predefinidos para que no inicie el programa vacio.
 #IDuracion es la parte numerica de la duracion, mientras que SDuracion es la parte en texto, se usa por accesibilidad.
-servicio1 = [{'Nombre':'Cortes de cabello', 'IDuracion':20, 'SDuracion': "min", 'Costo': 2000}, {'Empleados':[]}]
-servicio2 = [{'Nombre':'Cortes de Barba', 'IDuracion':30, 'SDuracion': "min", 'Costo': 15000}, {'Empleados':[]}]
+servicio1 = [{'Nombre':'Cortes de cabello', 'IDuracion':1, 'SDuracion': "hr", 'Costo': 35000}, {'Empleados':[]}]
+servicio2 = [{'Nombre':'Cortes de Barba', 'IDuracion':40, 'SDuracion': "min", 'Costo': 25000}, {'Empleados':[]}]
 
 # Los servicios se anaden como copias a la lista para evitar errores con la memoria del programa
 # Por ejemplo, si anado dos veces servicio1 y modifico informacion de este se modificara en las dos copias que anadi, usar .copy() evita esto.
@@ -41,7 +41,7 @@ def creacion_citas(info_servicio, horario):
     duracion = 0
     ultima_jornada = horario[0] * 60
     lista_horas = []
-    if(info_servicio['SDuracion'] == "hr"): duracion = info_servicio['IDuracion'] [i]* 60
+    if(info_servicio['SDuracion'] == "hr"): duracion = info_servicio['IDuracion'] * 60
     elif(info_servicio['SDuracion'] == "min"): duracion = info_servicio['IDuracion']
     tiempo_jornada = (horario[1]*60) - (horario[0]*60)
     for i in range(0, int(tiempo_jornada / duracion)):
@@ -97,9 +97,18 @@ def eliminar_servicio():
     x = int(input("Seleccione el servicio que desea eliminar: "))
     x = x-1 #convencion.
     if(x < 0 or x > len(servicios)):
-        print("El servicio que usted desea eliminar no existe, por favor intentelo de nuevo.")
+        print("El servicio que usted desea eliminar no existe, por favor intentelo de nuevo.\n")
+
+    existe_reserva = False
+    for i in range(0, len(servicios[x][1]['Empleados'])):
+        if(len(servicios[x][1]['Empleados'][i]['Reservas']) != 0):
+            existe_reserva = True
+    
+    if(existe_reserva):
+        print(f"El servicio {servicios[x][0]['Nombre']} no se puede eliminar puesto que aun hay reservas activas, estas deben completarse o eliminarse primero.\n")
     else:
         servicios.pop(x)
+        print("El servicio ha sido eliminado con exito.\n")
 
 def informacion_servicio():
     print("De que servicio desea adquirir informacion?: \n")
@@ -230,10 +239,12 @@ def eliminar_especialista():
         y = y-1 # Convencion.
         if(y < 0 or y > len(servicios[x][1]['Empleados'])):
             print("El empleado que usted seleccion no existe, intentelo de nuevo.\n")
+
+        if(len(servicios[x][1]['Empleados'][y]['Reservas']) != 0):
+            print(f"El empleado {servicios[x][1]['Empleados'][y]['Nombre']} tiene reservas activas en este momento por lo que no es posible borrarlo del sistema, estas deben completarse o eliminarse primero.\n")
         else:
             servicios[x][1]['Empleados'].pop(y)
             print("Empleado ha sido eliminado con exito.\n")
-
 
 # Eje Dict Empleado: (Cada empleado va dentro de la lista de empleados del servicio que presta)
 #Nuevamente aclaro que esta porcion de codigo existe unicamente para no iniciar el programa vacio, si elimamos estas lineas no rompera nada, solo se usa con fines practicos.
@@ -247,14 +258,10 @@ empleado1 = {
         'Disponibilidad':creacion_citas(servicios[0][0], horario_empleado('9:00-17:00')),
         'Reservas': [{'Cliente': 'x', 'Fecha': '08/9/23', 'Hora': 20}] # Solo se aceptan reservas dentro del horario, si la lista esta vacia se puede borrar servicio/empleado.
         }
-
-
 servicio1[1]['Empleados'].append(empleado1.copy()) #Notese nuevamente el uso de .copy()
-
 
 #Usuario por default, nuevamente no tiene mayor fin mas que dar practicidad a la hora de testear.
 usuarios = []
-
 
 # Funcion imcompleta, no se debe de usar.
 def anadir_reserva():
