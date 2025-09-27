@@ -304,6 +304,59 @@ def anadir_reserva(user_index):
     print(f"Fecha: {usuarios[user_index]['Reservas'][-1]['Fecha']}")
     print(f"Hora: {usuarios[user_index]['Reservas'][-1]['Hora']}")
 
+#Editar reserva
+def editar_reserva(user_index):
+    if len(usuarios[user_index]['Reservas']) == 0:
+        print("Usted no tiene reservas")
+        return
+
+    for i in range(len(usuarios[user_index]['Reservas'])):
+        print(f"[{i+1}] {usuarios[user_index]['Reservas'][i]}")
+
+    reserva_editar = int(input("\n¿Qué reserva desea editar?: ")) - 1
+    if reserva_editar < 0 or reserva_editar >= len(usuarios[user_index]['Reservas']):
+        print("Reserva inválida.")
+        return
+
+    reserva = usuarios[user_index]['Reservas'][reserva_editar]
+    fecha_actual, hora_actual = reserva['Fecha'], reserva['Hora']
+    nombre_empleado = reserva['Empleado']
+
+    # localizar empleado
+    for s in range(len(servicios)):
+        for e in range(len(servicios[s][1]['Empleados'])):
+            if servicios[s][1]['Empleados'][e]['Nombre'] == nombre_empleado:
+                empleado = servicios[s][1]['Empleados'][e]
+
+    print(f"\nReserva actual con {empleado['Nombre']} el {fecha_actual} a las {hora_actual}")
+    opcion = input("¿Qué desea cambiar? (fecha/hora/ambas): ")
+
+    nueva_fecha = input("Nueva fecha (dd/mm/yy): ") if opcion in ["fecha","ambas"] else fecha_actual
+    if opcion in ["hora","ambas"]:
+        for i in range(len(empleado['Disponibilidad'])):
+            print(f"[{i+1}] {empleado['Disponibilidad'][i]}")
+        hr = int(input("Seleccione nueva hora: ")) - 1
+        if hr < 0 or hr >= len(empleado['Disponibilidad']):
+            print("Hora inválida.")
+            return
+        nueva_hora = empleado['Disponibilidad'][hr]
+    else:
+        nueva_hora = hora_actual
+
+    # verificar disponibilidad
+    for r in empleado['Reservas']:
+        if r['Fecha'] == nueva_fecha and r['Hora'] == nueva_hora:
+            print("Ese horario ya está ocupado.")
+            return
+
+    # actualizar
+    for r in empleado['Reservas']:
+        if r['Cliente'] == usuarios[user_index]['Nombre'] and r['Fecha'] == fecha_actual and r['Hora'] == hora_actual:
+            r['Fecha'], r['Hora'] = nueva_fecha, nueva_hora
+    reserva['Fecha'], reserva['Hora'] = nueva_fecha, nueva_hora
+
+    print(f"\nReserva modificada: {empleado['Nombre']} - {nueva_fecha} {nueva_hora}")
+
 #Cancelar la reserva
 def cancelar_reserva(user_index):
         print("Lista de usuarios con reservas: \n")
@@ -387,7 +440,7 @@ def mostrar_menu():
         if opcion == 1:
             anadir_reserva(user_index)
         elif opcion == 2:
-            print()
+            editar_reserva(user_index)
         elif opcion == 3:
             cancelar_reserva(user_index)
         elif opcion == 4:
