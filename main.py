@@ -18,47 +18,46 @@ servicios.append(servicio2.copy())
 
 #convierte string en formato "10:00-12:20" en una lista de la forma [10.00, 12.20]
 def horario_empleado(x):
-    x = x.split('-')
-    inicio = x[0]
-    final = x[1]
-    inicio = inicio.replace(':', '.')
+    x = x.split('-') # Separa el 10:00 del 12:20 en un alista
+    inicio = x[0] # 10:00
+    final = x[1] # 12:20
+    inicio = inicio.replace(':', '.') # Luego cambia el 10:00 a 10.0 para operar con posteriormente
     final = final.replace(':', '.')
     inicio = float(inicio)
     final = float(final)
-    return [inicio, final]
+    return [inicio, final] # Retorna finalmente [10.0, 12.2]
 
 #NumeroString_split
 def ns_split(x):
-    sduracion = ""
+    sduracion = "" #Placeholder para agregar la parte que es solo texto
     for i in x:
         if(i.isdigit() == False):
-            sduracion += i
-            x = x.replace(i, "") #Elimina el caracter no entero de la variable
-    # esto retornaria por eje [30, 'min']
-    return [int(x), sduracion]
+            sduracion += i # Si i es texto entonces agregar ese caracter al placeholder
+            x = x.replace(i, "") #Elimina el caracter no entero de la variable, nos dejaria solamente el numero
+    return [int(x), sduracion] # Retona [tiempo, formato], eje: [30, 'min']
 
 def creacion_citas(info_servicio, horario):
-    duracion = 0
-    ultima_jornada = horario[0] * 60
+    duracion = 0 #Placeholder, lo uso por comodidad pues esto luego almacenara la duracion en un formato estandar (minutos)
+    ultima_jornada = horario[0] * 60 # Placeholder nuevamente, si el horario es [20, 40] esto seria = 40, lo que permite seguir con [40, 60] de manera mas facil
     lista_horas = []
     if(info_servicio['SDuracion'] == "hr"): duracion = info_servicio['IDuracion'] * 60
     elif(info_servicio['SDuracion'] == "min"): duracion = info_servicio['IDuracion']
-    tiempo_jornada = (horario[1]*60) - (horario[0]*60)
+    tiempo_jornada = (horario[1]*60) - (horario[0]*60) # Si se trabaja de 7am a 1pm esto seria 360, que son 6hr por eje
     for i in range(0, int(tiempo_jornada / duracion)):
         x = [ultima_jornada, ultima_jornada+duracion]
         ultima_jornada = x[1]
-        x[0] /= 60
+        x[0] /= 60 #Paso de minutos a horas
         x[1] /= 60
-        x1_minutos = (x[0] - int(x[0])) * 60
+        x1_minutos = (x[0] - int(x[0])) * 60 #los minutos son simplemente la parte decimal que queda como residuo de la conversion a horas, por eso tomo la parte decimal y la multiplico por 60 (Si son 0.25 es 1/4 de hora, o sea, 15min)
         x2_minutos = (x[1] - int(x[1])) * 60
-        if(int(x1_minutos)== 0): x1_minutos = "00"
-        else: x1_minutos = str(int(round(x1_minutos)))
+        if(int(x1_minutos)== 0): x1_minutos = "00" #Esto es para el formato, si la division da exacta no hay parte decimal, por lo que agrego manualmente los 00 al final
+        else: x1_minutos = str(int(round(x1_minutos))) #Redondeo porque la precision decimal de python se vuelve loca a veces
         if(int(x2_minutos)== 0): x2_minutos = "00"
         else: x2_minutos = str(int(round(x2_minutos)))
         
         x[0] = str(int(x[0])) + ":" + x1_minutos
         x[1] = str(int(x[1])) + ":" + x2_minutos
-        lista_horas.append(x)
+        lista_horas.append(x.copy()) #Olvide agregar esto en el anterior commit, dejarlo en la entrega final, de otra manera no funcionaria completamente bien.
     return lista_horas
 
 def crear_servicio():
@@ -79,11 +78,13 @@ def modificar_servicio():
         return
 
     variable = input("Que variable desea modificar? (Nombre, Duracion o Costo): ")
+    # Aca uso lower porque al recibir input string es mas facil verificarlo de esta manera
     if(variable.lower() == "nombre"):
         nuevo_nombre = input("Ingrese el nuevo nombre del servicio: ")
         servicios[x][0]['Nombre'] = nuevo_nombre
     elif(variable.lower() == "duracion"):
         existe_reserva = False
+        # Solo se puede modificar la duracion del servicio si no hay reservas disponibles
         for i in range(0, len(servicios[x][1]['Empleados'])):
             if(len(servicios[x][1]['Empleados'][i]['Reservas']) != 0):
                 existe_reserva = True
@@ -205,11 +206,13 @@ def modificar_especialista():
         return
 
 
+    # Para facilidad no se puede modificar informacion de un especialista si este tiene reservas activas
     if(len(servicios[x][1]['Empleados'][y]['Reservas']) != 0):
         print(f"\nEl empleado {servicios[x][1]['Empleados'][y]['Nombre']} tiene reservas activas en este momento por lo que no es posible modificar su informacion en el sistema, las reservas deben completarse o eliminarse primero.\n")
         return
 
     tipo_modificacion = input("Desea modificar toda su informacion o solo un dato en especifico? (completa/especifica): ")
+    # Aqui uso nuevamente el lower para facil verificacion
     if(tipo_modificacion.lower() == "completa"):
         servicios[x][1]['Empleados'][y]['Cedula'] = int(input("Nuevo No. cedula: "))
         servicios[x][1]['Empleados'][y]['Cel'] = int(input("Nuevo No. Cel: "))
@@ -234,6 +237,7 @@ def modificar_especialista():
         elif(variable.lower() == "horario"):
             servicios[x][1]['Empleados'][y]['Horario'] = input("Nuevo Horario (Se usa formato 24hr y separacion por '-', eje: 8:00-15:20): ")
             horas = horario_empleado(servicios[x][1]['Empleados'][y]['Horario'])
+            #Si el horario es modificado la lista horaria con disponibilidad tambien cambia
             lista_horas = creacion_citas(servicios[x][0], horas)
             servicios[x][1]['Empleados'][y]['Disponibilidad'] = lista_horas
             print(f"El horario de {servicios[x][1]['Empleados'][y]['Nombre']} ha sido modificado con exito.\n")
@@ -418,6 +422,7 @@ def crear_usuario():
     usuarios.append(usuario.copy())
     print(f"Se ha creado al usuario {usuario['Nombre']} con exito.\n")
 
+# Aqui le paso como argumento user_index de la funcion principal por practicidad, si la funcion falla necesita de este argumento para que no termine el programa y simplemente siga usando el mismo usuario que eligio hasta el momento
 def cambiar_usuario(user_index):
     print("\nUsuarios disponibles: ")
     for i in range(0, len(usuarios)):
@@ -425,16 +430,16 @@ def cambiar_usuario(user_index):
     nuser = int(input("Que usuario desea usar?: ")) - 1
     if(nuser < 0 or nuser> len(usuarios)):
         print("El usuario que usted eligio no existe, por favor intentelo de nuevo.\n")
-        return user_index
+        return user_index #Fijate en que si falla retorna user_index, o sea, el usuario actual.
     else:
         print(f"Se ha cambiado al usuario {usuarios[nuser]['Nombre']} con exito.\n")
         return nuser
-    return user_index
+    return user_index # Este return es el default por si falla algo arriba (como inputs), se usa por seguridad.
 
 def mostrar_menu():
     print("\n--- Bienvenido al sistema de gestion de servicios ---")
     crear_usuario()
-    user_index = 0
+    user_index = 0 # Defino user_index y su default, todas las funciones que requieren saber el usuario actual la necesitan como argumento
 
     while True:
 
@@ -456,9 +461,11 @@ def mostrar_menu():
         print("0. Salir")
     
         opcion = input("Seleccione una opción: ")
+        # Si se le pasa a esta variable un valor como 'uj3' esto permite que el programa no tire error y simplemente vuelva a pedir que ingrese la opcion
         if opcion.isdigit() == False:
             print("Por favor use los numeros a la izquierda, entradas con texto no son permitidas.")
         else:
+            #Si si es un digito simplemente la pasa a int y funciona como normalmente lo haria
             opcion = int(opcion)
 
         if opcion == 1:
@@ -486,11 +493,12 @@ def mostrar_menu():
         elif opcion == 12:
             crear_usuario()
         elif opcion == 13:
-            user_index = cambiar_usuario(user_index)
+            user_index = cambiar_usuario(user_index) #Cambiar_usuario solo cambia el index por su valor de retorno, por eso no la llamo unicamente como a las demas y cambio directamente el user_index.
         elif opcion == 0:
             print("Finalizando el programa.\n")
             break
         else:
+            #Para numeros fuera de rango
             print("Opción inválida. Intente de nuevo.\n")
 
 # Ejecutar el menú
