@@ -73,18 +73,31 @@ def modificar_servicio():
     print("Lista de servicios disponibles: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i][0]['Nombre']}")
-    x = int(input("Seleccione el servicio que desea modificar: "))
-    x = x - 1 # El X ingresado se hace con la convencion de 1 hasta len(servicios), pero asi no funciona la lista, esto lo soluciona.
+    x = int(input("Seleccione el servicio que desea modificar: ")) - 1 # El X ingresado se hace con la convencion de 1 hasta len(servicios), pero asi no funciona la lista, esto lo soluciona.
+    if x < 0 or x > len(servicios):
+        print("El servicio que usted desea modificar no existe, por favor intentelo de nuevo.\n")
+        return
+
     variable = input("Que variable desea modificar? (Nombre, Duracion o Costo): ")
     if(variable.lower() == "nombre"):
         nuevo_nombre = input("Ingrese el nuevo nombre del servicio: ")
         servicios[x][0]['Nombre'] = nuevo_nombre
-    if(variable.lower() == "duracion"):
-        nueva_duracion = input("Ingrese la nueva duracion del servicio (formato: numero-(hr/min/s), eje: 30min, 1hr, 20s): ")
-        nueva_duracion = ns_split(nueva_duracion)
-        servicios[x][0]['IDuracion'] = nueva_duracion[0]
-        servicios[x][0]['SDuracion'] = nueva_duracion[1]
-    if(variable.lower() == "costo"):
+    elif(variable.lower() == "duracion"):
+        existe_reserva = False
+        for i in range(0, len(servicios[x][1]['Empleados'])):
+            if(len(servicios[x][1]['Empleados'][i]['Reservas']) != 0):
+                existe_reserva = True
+        
+        if(existe_reserva):
+            print(f"La duracion del servicio {servicios[x][0]['Nombre']} no se puede modificar puesto que aun hay reservas activas, estas deben completarse o eliminarse primero.\n")
+
+        else:
+            nueva_duracion = input("Ingrese la nueva duracion del servicio (formato: numero-(hr/min/s), eje: 30min, 1hr, 20s): ")
+            nueva_duracion = ns_split(nueva_duracion)
+            servicios[x][0]['IDuracion'] = nueva_duracion[0]
+            servicios[x][0]['SDuracion'] = nueva_duracion[1]
+
+    elif(variable.lower() == "costo"):
         nuevo_costo = int(input("Ingrese el nuevo costo del servicio: "))
         servicios[x][0]['Costo'] = nuevo_costo
     else:
@@ -94,10 +107,10 @@ def eliminar_servicio():
     print("Lista de servicios disponibles: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i][0]['Nombre']}")
-    x = int(input("Seleccione el servicio que desea eliminar: "))
-    x = x-1 #convencion.
+    x = int(input("Seleccione el servicio que desea eliminar: ")) - 1 #convencion.
     if(x < 0 or x > len(servicios)):
         print("El servicio que usted desea eliminar no existe, por favor intentelo de nuevo.\n")
+        return
 
     existe_reserva = False
     for i in range(0, len(servicios[x][1]['Empleados'])):
@@ -106,6 +119,8 @@ def eliminar_servicio():
     
     if(existe_reserva):
         print(f"El servicio {servicios[x][0]['Nombre']} no se puede eliminar puesto que aun hay reservas activas, estas deben completarse o eliminarse primero.\n")
+    elif(len(servicios[x][1]['Empleados']) != 0):
+        print(f"El servicio {servicios[x][0]['Nombre']} no se puede eliminar puesto que aun hay empleados activos, estos deben ser eliminados primero.")
     else:
         servicios.pop(x)
         print("El servicio ha sido eliminado con exito.\n")
@@ -114,9 +129,7 @@ def informacion_servicio():
     print("De que servicio desea adquirir informacion?: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i][0]['Nombre']}")
-    x = int(input("Elija un servicio: "))
-    # Nuevamente por convencion
-    x = x-1
+    x = int(input("Elija un servicio: ")) - 1
     if(x < 0 or x > len(servicios)):
         print("El servicio que usted eligio no existe, intentelo de nuevo.\n")
     else:
@@ -145,8 +158,7 @@ def ingresar_especialista():
     print("A que servicio desea anadir un especialista?: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i][0]['Nombre']}")
-    x = int(input("Elija el servicio: "))
-    x = x - 1
+    x = int(input("Elija el servicio: ")) - 1
     if(x<0 or x>len(servicios)):
         print("El servicio que ha elegido no existe, intentelo de nuevo.\n")
     else:
@@ -179,18 +191,23 @@ def modificar_especialista():
     print("A que servicio pertenece el especialista?: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i][0]['Nombre']}")
-    x = int(input("Elija el servicio: "))
-    x = x - 1 # Convencion.
+    x = int(input("Elija el servicio: ")) - 1
     if(x < 0 or x> len(servicios)):
         print("El servicio seleccionado no existe, intentelo nuevamente.\n")
+        return
 
     print("Lista de empleados: \n")
     for i in range(0, len(servicios[x][1]['Empleados'])):
         print(f"[{i+1}] {servicios[x][1]['Empleados'][i]['Nombre']} {servicios[x][1]['Empleados'][i]['Apellidos']}")
-    y = int(input("Seleccione el especialista al cual desea modificarle informacion: "))
-    y = y-1 # Convencion.
+    y = int(input("Seleccione el especialista al cual desea modificarle informacion: ")) - 1
     if(y<0 or y>len(servicios[x][1]['Empleados'])):
         print("El empleado que usted selecciono no existe, intentelo de nuevo.\n")
+        return
+
+
+    if(len(servicios[x][1]['Empleados'][y]['Reservas']) != 0):
+        print(f"\nEl empleado {servicios[x][1]['Empleados'][y]['Nombre']} tiene reservas activas en este momento por lo que no es posible modificar su informacion en el sistema, las reservas deben completarse o eliminarse primero.\n")
+        return
 
     tipo_modificacion = input("Desea modificar toda su informacion o solo un dato en especifico? (completa/especifica): ")
     if(tipo_modificacion.lower() == "completa"):
@@ -208,13 +225,13 @@ def modificar_especialista():
         if(variable.lower() == "cedula"):
             servicios[x][1]['Empleados'][y]['Cedula'] = int(input("Nuevo No. cedula: "))
             print(f"La Cedula de {servicios[x][1]['Empleados'][y]['Nombre']} ha sido modificada con exito.\n")
-        if(variable.lower() == "celular"):
+        elif(variable.lower() == "celular"):
             servicios[x][1]['Empleados'][y]['Cel'] = int(input("Nuevo No. cel: "))
             print(f"El celular de {servicios[x][1]['Empleados'][y]['Nombre']} ha sido modificado con exito.\n")
-        if(variable.lower() == "email"):
+        elif(variable.lower() == "email"):
             servicios[x][1]['Empleados'][y]['Email'] = input("Nuevo Email: ")
             print(f"El Email de {servicios[x][1]['Empleados'][y]['Nombre']} ha sido modificado con exito.\n")
-        if(variable.lower() == "horario"):
+        elif(variable.lower() == "horario"):
             servicios[x][1]['Empleados'][y]['Horario'] = input("Nuevo Horario (Se usa formato 24hr y separacion por '-', eje: 8:00-15:20): ")
             horas = horario_empleado(servicios[x][1]['Empleados'][y]['Horario'])
             lista_horas = creacion_citas(servicios[x][0], horas)
@@ -230,6 +247,7 @@ def eliminar_especialista():
     x = x - 1 #Convencion.
     if(x<0 or x > len(servicios)):
         print("El servicio que usted selecciono no existe, intentelo de nuevo.\n")
+        return
     
     else:
         print("\nQue empleado del servicio desea eliminar?: ")
@@ -239,6 +257,7 @@ def eliminar_especialista():
         y = y-1 # Convencion.
         if(y < 0 or y > len(servicios[x][1]['Empleados'])):
             print("El empleado que usted seleccion no existe, intentelo de nuevo.\n")
+            return
 
         if(len(servicios[x][1]['Empleados'][y]['Reservas']) != 0):
             print(f"\nEl empleado {servicios[x][1]['Empleados'][y]['Nombre']} tiene reservas activas en este momento por lo que no es posible borrarlo del sistema, estas deben completarse o eliminarse primero.\n")
@@ -256,7 +275,7 @@ empleado1 = {
         'Email':'pepito@hotmail.com',
         'Horario': '9:00-17:00',
         'Disponibilidad':creacion_citas(servicios[0][0], horario_empleado('9:00-17:00')),
-        'Reservas': [{'Cliente': 'x', 'Fecha': '08/9/23', 'Hora': 20}] # Solo se aceptan reservas dentro del horario, si la lista esta vacia se puede borrar servicio/empleado.
+        'Reservas': [] # Solo se aceptan reservas dentro del horario, si la lista esta vacia se puede borrar servicio/empleado.
         }
 servicio1[1]['Empleados'].append(empleado1.copy()) #Notese nuevamente el uso de .copy()
 
@@ -367,7 +386,7 @@ def cancelar_reserva(user_index):
         for i in range(0, len(usuarios[user_index]['Reservas'])):
             print(f"[{i+1}] {usuarios[user_index]['Reservas'][i]}")
         
-        reserva_cancelar = int(input("¿Qué reserva desea cancelar?")) - 1 #convencion
+        reserva_cancelar = int(input("¿Qué reserva desea cancelar?: ")) - 1 #convencion
         if reserva_cancelar < 0 or reserva_cancelar >= len(usuarios[user_index]['Reservas']):
             print("La reserva que seleccionaste no existe.\n")
         else:
@@ -436,7 +455,12 @@ def mostrar_menu():
         print("13. Cambiar de usuario.")
         print("0. Salir")
     
-        opcion = int(input("Seleccione una opción: "))
+        opcion = input("Seleccione una opción: ")
+        if opcion.isdigit() == False:
+            print("Por favor use los numeros a la izquierda, entradas con texto no son permitidas.")
+        else:
+            opcion = int(opcion)
+
         if opcion == 1:
             anadir_reserva(user_index)
         elif opcion == 2:
