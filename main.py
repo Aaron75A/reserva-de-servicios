@@ -1,4 +1,5 @@
 import copy
+import re
 
 # Todas las variables dentro de clase a las que se le declara un tipo list deben de tener = [], de otro modo si las revisamos y aun no se declaran dan un AttributeError
 # Notese que esto sucede con cualquier variable que aun no este declarada, es simplemente que en el programa recurrimos mas a revisar listas que pueden estar vacias, por eso unicamente les asignamos un valor a la lista.
@@ -42,6 +43,14 @@ servicio1.Iduracion = 30
 servicio1.Sduracion = "min"
 servicio1.costo = "30"
 servicios.append(copy.copy(servicio1))
+
+def valid_email(s):
+    while True:
+        e = input(s)
+        valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', e)
+        if valid: break
+        else: print("El email ingresado no es valido, intentelo de nuevo.")
+    return e
 
 def isint(s, e = "El valor ingresado para este campo no es valido, intentelo de nuevo."):
     while True:
@@ -223,7 +232,7 @@ def ingresar_especialista():
         p1.apellido = input("Apellidos: ")
         p1.cedula = isint("Cedula: ")
         p1.cel = isint("Celular: ")
-        p1.email = input("Email: ")
+        p1.email = valid_email("Email: ")
         p1.horario = input("Horario (Se usa formato 24hr y separacion por '-', eje: 8:00-15:20): ")
         horas = horario_empleado(p1.horario)
         lista_horas = creacion_citas(servicios[x], horas)
@@ -262,7 +271,7 @@ def modificar_especialista():
     if(tipo_modificacion.lower() == "completa"):
         servicios[x].empleados[y].cedula = isint("Nuevo No. cedula: ")
         servicios[x].empleados[y].cel= isint("Nuevo No. Cel: ")
-        servicios[x].empleados[y].email = input("Nuevo Email: ")
+        servicios[x].empleados[y].email = valid_email("Nuevo Email: ")
         servicios[x].empleados[y].horario = input("Nuevo Horario (Se usa formato 24hr y separacion por '-', eje: 8:00-15:20): ")
         horas = horario_empleado(servicios[x].empleados[y].horario)
         lista_horas = creacion_citas(servicios[x], horas)
@@ -278,7 +287,7 @@ def modificar_especialista():
             servicios[x].empleados[y].cel = isint("Nuevo No. cel: ")
             print(f"El celular de {servicios[x][1]['Empleados'][y]['Nombre']} ha sido modificado con exito.\n")
         elif(variable.lower() == "email"):
-            servicios[x].empleados[y].email = input("Nuevo Email: ")
+            servicios[x].empleados[y].email = valid_email("Nuevo Email: ")
             print(f"El Email de {servicios[x].empleados[y].nombre} ha sido modificado con exito.\n")
         elif(variable.lower() == "horario"):
             servicios[x].empleados[y].horario = input("Nuevo Horario (Se usa formato 24hr y separacion por '-', eje: 8:00-15:20): ")
