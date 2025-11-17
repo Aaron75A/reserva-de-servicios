@@ -1,5 +1,6 @@
 import copy
 import re
+from datetime import datetime
 
 # Todas las variables dentro de clase a las que se le declara un tipo list deben de tener = [], de otro modo si las revisamos y aun no se declaran dan un AttributeError
 # Notese que esto sucede con cualquier variable que aun no este declarada, es simplemente que en el programa recurrimos mas a revisar listas que pueden estar vacias, por eso unicamente les asignamos un valor a la lista.
@@ -31,6 +32,8 @@ class Servicio:
     costo: int
     empleados: list[Empleado] = []
 
+fecha_hoy = datetime.now().strftime('%B %d, %Y | %A')
+
 # Lista que contendra todos los servicios que declaremos para el sistema.
 servicios = []
 
@@ -43,6 +46,35 @@ servicio1.Iduracion = 30
 servicio1.Sduracion = "min"
 servicio1.costo = "30"
 servicios.append(copy.copy(servicio1))
+
+def mostrar_date(d,f = "%B %d, %Y | %A"):
+    datetime_p = datetime.strptime(d, "%Y-%m-%d")
+    return datetime_p.strftime(f)
+
+
+def valid_date(s):
+    c = datetime.now().strftime('%Y-%m-%d').split('-')
+    for i in range(0,len(c)): c[i] = int(c[i])
+    while True:
+        p = input(s);
+        try:
+            datetime_p = datetime.strptime(p, "%Y-%m-%d")
+        except ValueError:
+            print("El formato en el que ingreso la fecha no es valido, por favor ingrese una fecha con formato valido.")
+            continue
+        if(datetime_p.strftime('%A') == "Sunday"):
+            print("La fecha ingresada corresponde a un dia domingo, por favor recuerde que en estos dias no se trabaja.")
+            continue
+        d = p
+        d = d.split('-')
+        for i in range(0,len(d)): d[i] = int(d[i])
+        separacion_meses = (((d[0] - c[0]) * 12) + d[1]) - c[1]
+        if(d[0]<c[0] or (d[0] == c[0] and d[1]<c[1]) or (d[0] == c[0] and d[1]==c[1] and d[2]<c[2])):
+            print("La fecha ingresada es anterior a la fecha actual, por favor ingrese una fecha valida para la reserva.")
+        elif separacion_meses > 12:
+            print("No se puede reservar para una fecha tan lejana, por favor ingrese una fecha que no este a mas de 12 meses de la fecha actual.")
+        else: break
+    return p
 
 def valid_email(s):
     while True:
@@ -215,11 +247,11 @@ def informacion_servicio():
                 for a in range(0, len(servicios[x].empleados[i].disponibilidad)):
                     print(f"[{a+1}] {servicios[x].empleados[i].disponibilidad[a]}")
 
-def ingresar_especialista():
+def ingresar_empleado():
     if len(servicios) == 0:
-        print("No existe ningun servicio al cual ingresar un especialista, cree uno primero.")
+        print("No existe ningun servicio al cual ingresar un empleado, cree uno primero.")
         return
-    print("A que servicio desea anadir un especialista?: \n")
+    print("A que servicio desea anadir un empleado?: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
     x = int(input("Elija el servicio: ")) - 1
@@ -238,13 +270,13 @@ def ingresar_especialista():
         lista_horas = creacion_citas(servicios[x], horas)
         p1.disponibilidad = lista_horas
         servicios[x].empleados.append(copy.copy(p1))
-        print(f"\nEl empleado/especialista {p1.nombre} ha sido agregado con exito.\n")
+        print(f"\nEl empleado {p1.nombre} ha sido agregado con exito.\n")
 
-def modificar_especialista():
+def modificar_empleado():
     if(len(servicios) == 0):
-        print("No existen servicios ni especialistas disponibles, cree unos primero.")
+        print("No existen servicios ni empleados disponibles, cree unos primero.")
         return
-    print("A que servicio pertenece el especialista?: \n")
+    print("A que servicio pertenece el empleado?: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
     x = isint("Elija el servicio: ") - 1
@@ -255,13 +287,13 @@ def modificar_especialista():
     print("Lista de empleados: \n")
     for i in range(0, len(servicios[x].empleados)):
         print(f"[{i+1}] {servicios[x].empleados[i].nombre} {servicios[x].empleados[i].apellido}")
-    y = int(input("Seleccione el especialista al cual desea modificarle informacion: ")) - 1
+    y = int(input("Seleccione el empleado al cual desea modificarle informacion: ")) - 1
     if(y<0 or y >= len(servicios[x].empleados)):
         print("El empleado que usted selecciono no existe, intentelo de nuevo.\n")
         return
 
 
-    # Para facilidad no se puede modificar informacion de un especialista si este tiene reservas activas
+    # Para facilidad no se puede modificar informacion de un empleado si este tiene reservas activas
     if(len(servicios[x].empleados[y].reservas) != 0):
         print(f"\nEl empleado {servicios[x].empleados[y].nombre} tiene reservas activas en este momento por lo que no es posible modificar su informacion en el sistema, las reservas deben completarse o eliminarse primero.\n")
         return
@@ -298,11 +330,11 @@ def modificar_especialista():
             print(f"El horario de {servicios[x].empleados[y].nombre} ha sido modificado con exito.\n")
 
 
-def eliminar_especialista():
+def eliminar_empleado():
     if(len(servicios)==0):
-        print("Esta funcion no esta disponible puesto que no existen especialistas para eliminar.")
+        print("Esta funcion no esta disponible puesto que no existen empleado para eliminar.")
         return
-    print("A que servicio pertenece el especialista que desea eliminar?: \n")
+    print("A que servicio pertenece el empleado que desea eliminar?: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
     x = isint("Elija el servicio: ") - 1
@@ -345,7 +377,7 @@ def anadir_reserva(user_index):
         print(f"Celular: {servicios[servicio].empleados[i].cel}")
         print(f"Email: {servicios[servicio].empleados[i].email}")
     empleado = isint("Seleccione el empleado que desea: ") - 1
-    fecha = input("En que fecha lo desea? (se usa formato dd/mm/yy, eje: 09/03/14): ")
+    fecha = valid_date("En que fecha lo desea? (se usa formato yyyy-mm-dd, eje: 2024-03-26): ")
     for i in range(0, len(servicios[servicio].empleados[i].disponibilidad)):
         print(f"Horario {i+1}: {servicios[servicio].empleados[empleado].disponibilidad[i]}")
     hora = isint("En que horario lo desea?: ") - 1
@@ -368,8 +400,8 @@ def anadir_reserva(user_index):
 
     print("RESERVA REALIZADA...\n")
     print(f"Nombres de Empleado: {usuarios[user_index].reservas[-1].nombre_empleado}")
-    print(f"Fecha: {usuarios[user_index].reservas[-1].fecha}")
-    print(f"Hora: {usuarios[user_index].reservas[-1].hora}")
+    print(f"Fecha: {mostrar_date(fecha)}")
+    print(f"Hora: {hora_seleccionada}")
 
 #Editar reserva
 def editar_reserva(user_index):
@@ -398,7 +430,7 @@ def editar_reserva(user_index):
     print(f"\nReserva actual con {empleado.nombre} el {fecha_actual} a las {hora_actual}")
     opcion = input("¿Qué desea cambiar? (fecha/hora/ambas): ")
 
-    if opcion.lower() == "fecha" or opcion.lower() == "ambas": nueva_fecha = input("Nueva fecha (dd/mm/yy): ")
+    if opcion.lower() == "fecha" or opcion.lower() == "ambas": nueva_fecha = valid_date("Nueva fecha (yyyy-mm-dd): ")
     else: nueva_fecha = fecha_actual
 
     if opcion.lower() == "hora" or opcion.lower() == "ambas":
@@ -427,7 +459,7 @@ def editar_reserva(user_index):
             r.fecha, r.hora = nueva_fecha, nueva_hora
     reserva.fecha, reserva.hora = nueva_fecha, nueva_hora
 
-    print(f"\nReserva modificada: {empleado.nombre} - {nueva_fecha} {nueva_hora}")
+    print(f"\nReserva modificada: {empleado.nombre} - {mostrar_date(nueva_fecha)} {nueva_hora}")
 
 #Cancelar la reserva
 def cancelar_reserva(user_index):
@@ -456,7 +488,7 @@ def mostrar_reservas():   #Con esta funcion voy a mostrar las reservas de todos 
             if len(empleado.reservas) > 0:
                 print(f"  Empleado {e+1}: {empleado.nombre} {empleado.apellido}")
                 for r, reserva in enumerate(empleado.reservas):
-                    print(f"    Reserva {r+1}: Cliente: {reserva.nombre_cliente}, Fecha: {reserva.fecha}, Hora: {reserva.hora}")
+                    print(f"    Reserva {r+1}: Cliente: {reserva.nombre_cliente}, Fecha: {mostrar_date(reserva.fecha)}, Hora: {reserva.hora}")
             else:
                 print(f"  Empleado {e+1}: {empleado.nombre} {empleado.apellido} (Sin reservas)")
         print()  
@@ -494,14 +526,15 @@ def mostrar_menu():
     while True:
 
         print("\n--- SISTEMA DE GESTIÓN DE SERVICIOS ---")
+        print(fecha_hoy)
         print(f"Hola {usuarios[user_index].nombre}, que desea realizar?")
         print("1. Ingresar reserva")
         print("2. Editar reserva")
         print("3. Cancelar reserva")
         print("4. Consultar reservas")
-        print("5. Ingresar especialista/trabajador")
-        print("6. Editar especialista/trabajador")
-        print("7. Borrar especialista/trabajador")
+        print("5. Ingresar empleado")
+        print("6. Editar empleado")
+        print("7. Borrar empleado")
         print("8. Ingresar servicio")
         print("9. Editar servicio")
         print("10. Borrar servicio")
@@ -522,11 +555,11 @@ def mostrar_menu():
         elif opcion == 4:
             mostrar_reservas()
         elif opcion == 5:
-            ingresar_especialista()
+            ingresar_empleado()
         elif opcion == 6:
-            modificar_especialista()
+            modificar_empleado()
         elif opcion == 7:
-            eliminar_especialista()
+            eliminar_empleado()
         elif opcion == 8:
             crear_servicio()
         elif opcion == 9:
