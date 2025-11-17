@@ -4,6 +4,7 @@ from datetime import datetime
 
 # Todas las variables dentro de clase a las que se le declara un tipo list deben de tener = [], de otro modo si las revisamos y aun no se declaran dan un AttributeError
 # Notese que esto sucede con cualquier variable que aun no este declarada, es simplemente que en el programa recurrimos mas a revisar listas que pueden estar vacias, por eso unicamente les asignamos un valor a la lista.
+# Todas las variables mutables se agregan en __init__ para evitar problemas con la memoria
 class Reserva:
     def __init__(self, nombre_empleado: str, nombre_cliente: str, fecha: str, hora: list = []):
         self.nombre_empleado = nombre_empleado
@@ -12,25 +13,28 @@ class Reserva:
         self.hora = hora
 
 class Usuario:
+    def __init__(self):
+        self.reservas: list[Reserva] = []
     nombre: str
-    reservas: list[Reserva] = []
 
 class Empleado:
+    def __init__(self):
+        self.disponibilidad: list = []
+        self.reservas: list[Reserva] = []
     nombre: str
     apellido: str
     email: str
     cedula: int
     cel: int
-    disponibilidad: list = []
-    horario: str
-    reservas: list[Reserva] = []
+    horario = "8:00-17:00"
 
 class Servicio:
+    def __init__(self):
+        self.empleados: list[Empleado] = []
     nombre: str
     Iduracion: int
     Sduracion: str
     costo: int
-    empleados: list[Empleado] = []
 
 fecha_hoy = datetime.now().strftime('%B %d, %Y | %A')
 
@@ -39,13 +43,6 @@ servicios = []
 
 #Usuario por default, nuevamente no tiene mayor fin mas que dar practicidad a la hora de testear.
 usuarios = []
-
-servicio1 = Servicio()
-servicio1.nombre = "papa"
-servicio1.Iduracion = 30
-servicio1.Sduracion = "min"
-servicio1.costo = "30"
-servicios.append(copy.copy(servicio1))
 
 def mostrar_date(d,f = "%B %d, %Y | %A"):
     datetime_p = datetime.strptime(d, "%Y-%m-%d")
@@ -147,7 +144,6 @@ def crear_servicio():
     s1.Sduracion = duracion[1]
     s1.costo = int(input("Ingrese el costo del servicio: "))
     servicios.append(copy.copy(s1)) # Lo mismo que con las listas. Las clases son objetos mutables, por lo tanto si no usas .copy se pasan por referencia y eso no nos conviene.
-    print(servicios)
 
 def modificar_servicio():
     if(len(servicios) == 0):
@@ -254,23 +250,22 @@ def ingresar_empleado():
     print("A que servicio desea anadir un empleado?: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
-    x = int(input("Elija el servicio: ")) - 1
+    x = isint("Elija el servicio: ") - 1
     if(x<0 or x>=len(servicios)):
         print("El servicio que ha elegido no existe, intentelo de nuevo.\n")
-    else:
-        p1 = Empleado()
-        print("\nIngrese los datos del empleado: ")
-        p1.nombre = input("Nombres: ")
-        p1.apellido = input("Apellidos: ")
-        p1.cedula = isint("Cedula: ")
-        p1.cel = isint("Celular: ")
-        p1.email = valid_email("Email: ")
-        p1.horario = input("Horario (Se usa formato 24hr y separacion por '-', eje: 8:00-15:20): ")
-        horas = horario_empleado(p1.horario)
-        lista_horas = creacion_citas(servicios[x], horas)
-        p1.disponibilidad = lista_horas
-        servicios[x].empleados.append(copy.copy(p1))
-        print(f"\nEl empleado {p1.nombre} ha sido agregado con exito.\n")
+        return
+    p1 = Empleado()
+    print("\nIngrese los datos del empleado: ")
+    p1.nombre = input("Nombres: ")
+    p1.apellido = input("Apellidos: ")
+    p1.cedula = isint("Cedula: ")
+    p1.cel = isint("Celular: ")
+    p1.email = valid_email("Email: ")
+    horas = horario_empleado(p1.horario)
+    lista_horas = creacion_citas(servicios[x], horas)
+    p1.disponibilidad = lista_horas
+    servicios[x].empleados.append(copy.copy(p1))
+    print(f"\nEl empleado {p1.nombre} ha sido agregado a {servicios[x].nombre} con exito.\n")
 
 def modificar_empleado():
     if(len(servicios) == 0):
@@ -292,43 +287,28 @@ def modificar_empleado():
         print("El empleado que usted selecciono no existe, intentelo de nuevo.\n")
         return
 
-
     # Para facilidad no se puede modificar informacion de un empleado si este tiene reservas activas
     if(len(servicios[x].empleados[y].reservas) != 0):
         print(f"\nEl empleado {servicios[x].empleados[y].nombre} tiene reservas activas en este momento por lo que no es posible modificar su informacion en el sistema, las reservas deben completarse o eliminarse primero.\n")
         return
 
     tipo_modificacion = input("Desea modificar toda su informacion o solo un dato en especifico? (completa/especifica): ")
+    variable = ""
     # Aqui uso nuevamente el lower para facil verificacion
-    if(tipo_modificacion.lower() == "completa"):
+    if(tipo_modificacion.lower() in ["especifica", "completa"]) == False:
+        print("Esa opcion no existe, por favor intentelo de nuevo")
+        return
+    if(tipo_modificacion.lower() == "especifica"):
+        variable = input("Que variable desea modificar? (cedula, celular o email): ")
+    if(variable.lower() == "cedula" or tipo_modificacion.lower() == "completa"):
         servicios[x].empleados[y].cedula = isint("Nuevo No. cedula: ")
-        servicios[x].empleados[y].cel= isint("Nuevo No. Cel: ")
+    if(variable.lower() == "celular" or tipo_modificacion.lower() == "completa"):
+        servicios[x].empleados[y].cel = isint("Nuevo No. cel: ")
+    if(variable.lower() == "email" or tipo_modificacion.lower() == "completa"):
         servicios[x].empleados[y].email = valid_email("Nuevo Email: ")
-        servicios[x].empleados[y].horario = input("Nuevo Horario (Se usa formato 24hr y separacion por '-', eje: 8:00-15:20): ")
-        horas = horario_empleado(servicios[x].empleados[y].horario)
-        lista_horas = creacion_citas(servicios[x], horas)
-        servicios[x].empleados[y].disponibilidad = lista_horas
 
-        print(f"La informacion de {servicios[x].empleados[y].nombre} ha sido modificada con exito.\n")
-    elif(tipo_modificacion.lower() == "especifica"):
-        variable = input("Que variable desea modificar? (cedula, celular, email u horario): ")
-        if(variable.lower() == "cedula"):
-            servicios[x].empleados[y].cedula = isint("Nuevo No. cedula: ")
-            print(f"La Cedula de {servicios[x].empleados[y].nombre} ha sido modificada con exito.\n")
-        elif(variable.lower() == "celular"):
-            servicios[x].empleados[y].cel = isint("Nuevo No. cel: ")
-            print(f"El celular de {servicios[x][1]['Empleados'][y]['Nombre']} ha sido modificado con exito.\n")
-        elif(variable.lower() == "email"):
-            servicios[x].empleados[y].email = valid_email("Nuevo Email: ")
-            print(f"El Email de {servicios[x].empleados[y].nombre} ha sido modificado con exito.\n")
-        elif(variable.lower() == "horario"):
-            servicios[x].empleados[y].horario = input("Nuevo Horario (Se usa formato 24hr y separacion por '-', eje: 8:00-15:20): ")
-            horas = horario_empleado(servicios[x].empleados[y].horario)
-            #Si el horario es modificado la lista horaria con disponibilidad tambien cambia
-            lista_horas = creacion_citas(servicios[x], horas)
-            servicios[x].empleados[y].disponibilidad = lista_horas
-            print(f"El horario de {servicios[x].empleados[y].nombre} ha sido modificado con exito.\n")
-
+    if(tipo_modificacion.lower() == "completa"): print(f"La informacion de {servicios[x].empleados[y].nombre} ha sido modificada con exito")
+    else: print(f"El/La {variable.lower()} de {servicios[x].empleados[y].nombre} ha sido modificado/a con exito.\n")
 
 def eliminar_empleado():
     if(len(servicios)==0):
@@ -357,16 +337,13 @@ def eliminar_empleado():
             servicios[x].empleados.pop(y)
             print("Empleado ha sido eliminado con exito.\n")
 
-
-
-
 def anadir_reserva(user_index):
     if(len(servicios) == 0):
         print("No existe ningun servicio al cual ingresar una reserva.")
         return
-    print("\nEn que servicio desea realizar su reserva?: ")
+    print("En que servicio desea realizar su reserva?: ")
     for i in range(0, len(servicios)):
-        print(f"[{i+1}] {servicios[i].nombre}\n")
+        print(f"[{i+1}] {servicios[i].nombre}")
     servicio = int(input("Que servicio desea: ")) - 1
     print("\nCon que empleado desea realizar su reserva?: ")
     for i in range(0, len(servicios[servicio].empleados)):
@@ -461,7 +438,6 @@ def editar_reserva(user_index):
 
     print(f"\nReserva modificada: {empleado.nombre} - {mostrar_date(nueva_fecha)} {nueva_hora}")
 
-#Cancelar la reserva
 def cancelar_reserva(user_index):
         if len(usuarios[user_index].reservas) == 0:
             print("No tienes reservas para cancelar.\n")
@@ -477,7 +453,6 @@ def cancelar_reserva(user_index):
         else:
             reserva_eliminada = usuarios[user_index].reservas.pop(reserva_cancelar)
             print(f"¡Tu reserva {reserva_eliminada} ha sido cancelada correctamente!\n")
-
 
 def mostrar_reservas():   #Con esta funcion voy a mostrar las reservas de todos los servicios, me tocó aprender a usar 'enumerate'
     print("\n----->LISTA DE TODAS LAS RESERVAS<-----\n")
@@ -524,7 +499,6 @@ def mostrar_menu():
     user_index = 0 # Defino user_index y su default, todas las funciones que requieren saber el usuario actual la necesitan como argumento
 
     while True:
-
         print("\n--- SISTEMA DE GESTIÓN DE SERVICIOS ---")
         print(fecha_hoy)
         print(f"Hola {usuarios[user_index].nombre}, que desea realizar?")
@@ -542,7 +516,7 @@ def mostrar_menu():
         print("12. Crear nuevo usuario.")
         print("13. Cambiar de usuario.")
         print("0. Salir")
-    
+
         # Si se le pasa a esta variable un valor como 'uj3' esto permite que el programa no tire error y simplemente vuelva a pedir que ingrese la opcion
         opcion = isint("Seleccione una opción: ", "Por favor use los numeros a la izquierda, entradas con texto no son permitidas.")
 
