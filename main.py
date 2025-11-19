@@ -48,7 +48,6 @@ def mostrar_date(d,f = "%B %d, %Y | %A"):
     datetime_p = datetime.strptime(d, "%Y-%m-%d")
     return datetime_p.strftime(f)
 
-
 def valid_date(s):
     c = datetime.now().strftime('%Y-%m-%d').split('-')
     for i in range(0,len(c)): c[i] = int(c[i])
@@ -89,6 +88,14 @@ def isint(s, e = "El valor ingresado para este campo no es valido, intentelo de 
             print(e)
             continue
         break
+    return n
+
+def valid_cost(c):
+    while(1):
+        n = isint(c)
+        if(n < 0): print("El valor del producto debe de ser positivo, intentelo de nuevo.")
+        elif(n==0): print("No se ofrecen servicios pagos, ingrese un valor mayor a cero.")
+        else: break
     return n
 
 #convierte string en formato "10:00-12:20" en una lista de la forma [10.00, 12.20]
@@ -142,7 +149,7 @@ def crear_servicio():
     duracion = ns_split(duracion)
     s1.Iduracion = duracion[0]
     s1.Sduracion = duracion[1]
-    s1.costo = int(input("Ingrese el costo del servicio: "))
+    s1.costo = valid_cost("Ingrese el costo del servicio: ")
     servicios.append(copy.copy(s1)) # Lo mismo que con las listas. Las clases son objetos mutables, por lo tanto si no usas .copy se pasan por referencia y eso no nos conviene.
 
 def modificar_servicio():
@@ -158,30 +165,27 @@ def modificar_servicio():
         print("El servicio que usted desea modificar no existe, por favor intentelo de nuevo.\n")
         return
 
-    variable = input("Que variable desea modificar? (Nombre, Duracion o Costo): ")
-    # Aca uso lower porque al recibir input string es mas facil verificarlo de esta manera
-    if(variable.lower() == "nombre"):
+    variable = input("Que variable desea modificar? (Nombre, Duracion, Costo o Todo): ")
+    if(variable.lower() == "nombre" or variable.lower() == "todo"):
         servicios[x].nombre = input("Ingrese el nuevo nombre del servicio: ")
-    elif(variable.lower() == "duracion"):
+    if(variable.lower() == "duracion" or variable.lower() == "todo"):
         existe_reserva = False
-        # Solo se puede modificar la duracion del servicio si no hay reservas disponibles
         for i in range(0, len(servicios[x].empleados)):
             if(len(servicios[x].empleados[i].reservas) != 0):
                 existe_reserva = True
         
         if(existe_reserva):
             print(f"La duracion del servicio {servicios[x].nombre} no se puede modificar puesto que aun hay reservas activas, estas deben completarse o eliminarse primero.\n")
-
         else:
             nueva_duracion = input("Ingrese la nueva duracion del servicio (formato: numero-(hr/min/s), eje: 30min, 1hr, 20s): ")
             nueva_duracion = ns_split(nueva_duracion)
             servicios[x].Iduracion = nueva_duracion[0]
             servicios[x].Sduracion = nueva_duracion[1]
+    if(variable.lower() == "costo" or variable.lower() == "todo"):
+        servicios[x].costo = valid_cost("Ingrese el nuevo costo del servicio: ")
 
-    elif(variable.lower() == "costo"):
-        servicios[x].costo = int(input("Ingrese el nuevo costo del servicio: "))
-    else:
-        print("La variable que usted quiere modificar no existe, por favor intente de nuevo.")
+    if(variable.lower() == "todo"): print(f"La informacion de {servicios[x].nombre} ha sido modificada con exito")
+    else: print(f"El/la {variable.lower()} del servicio ha sido modificado/a")
 
 def eliminar_servicio():
     if(len(servicios) == 0):
@@ -192,7 +196,7 @@ def eliminar_servicio():
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
 
-    x = int(input("Seleccione el servicio que desea eliminar: ")) - 1 #convencion.
+    x = isint("Seleccione el servicio que desea eliminar: ") - 1 #convencion.
     if(x < 0 or x >= len(servicios)):
         print("El servicio que usted desea eliminar no existe, por favor intentelo de nuevo.\n")
         return
@@ -218,13 +222,13 @@ def informacion_servicio():
     print("De que servicio desea adquirir informacion?: \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
-    x = int(input("Elija un servicio: ")) - 1
+    x = isint("Elija un servicio: ") - 1
     if(x < 0 or x >= len(servicios)):
         print("El servicio que usted eligio no existe, intentelo de nuevo.\n")
     else:
         print(f"\nNombre: {servicios[x].nombre}")
         print(f"Duracion: {servicios[x].Iduracion}{servicios[x].Sduracion}")
-        print(f"Costo: {servicios[x].costo}")
+        print(f"Costo: {servicios[x].costo}$")
         if(len(servicios[x].empleados) == 0):
             print("No existen empleados.\n")
         else:
@@ -282,7 +286,7 @@ def modificar_empleado():
     print("Lista de empleados: \n")
     for i in range(0, len(servicios[x].empleados)):
         print(f"[{i+1}] {servicios[x].empleados[i].nombre} {servicios[x].empleados[i].apellido}")
-    y = int(input("Seleccione el empleado al cual desea modificarle informacion: ")) - 1
+    y = isint("Seleccione el empleado al cual desea modificarle informacion: ") - 1
     if(y<0 or y >= len(servicios[x].empleados)):
         print("El empleado que usted selecciono no existe, intentelo de nuevo.\n")
         return
@@ -344,7 +348,7 @@ def anadir_reserva(user_index):
     print("En que servicio desea realizar su reserva?: ")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
-    servicio = int(input("Que servicio desea: ")) - 1
+    servicio = isint("Que servicio desea: ") - 1
     print("\nCon que empleado desea realizar su reserva?: ")
     for i in range(0, len(servicios[servicio].empleados)):
         print(f"\nEmpleado {i+1}: ")
