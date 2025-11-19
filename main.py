@@ -85,6 +85,16 @@ def valid_email(s):
         else: print("El email ingresado no es valido, intentelo de nuevo.")
     return e
 
+def valid_numero(s,c):
+    while True:
+        e = input(s)
+        valid = re.match(r'^[0-9]\d{9}$', e)
+        if valid: break
+        else:
+            print(c)
+            print("La entrada debe de contener exactamente 10 digitos.")
+    return int(e)
+
 def isint(s, e = "El valor ingresado para este campo no es valido, intentelo de nuevo."):
     while True:
         try:
@@ -286,8 +296,8 @@ def ingresar_empleado():
     print("\nIngrese los datos del empleado: ")
     p1.nombre = input("Nombres: ")
     p1.apellido = input("Apellidos: ")
-    p1.cedula = isint("Cedula: ")
-    p1.cel = isint("Celular: ")
+    p1.cedula = valid_numero("Cedula: ", "El valor ingresado para la cedula es incorrecto")
+    p1.cel = valid_numero("Celular: ", "El valor ingresado para el celular es incorrecto")
     p1.email = valid_email("Email: ")
     horas = horario_empleado(p1.horario)
     lista_horas = creacion_citas(servicios[x], horas)
@@ -329,9 +339,9 @@ def modificar_empleado():
     if(tipo_modificacion.lower() == "especifica"):
         variable = input("Que variable desea modificar? (cedula, celular o email): ")
     if(variable.lower() == "cedula" or tipo_modificacion.lower() == "completa"):
-        servicios[x].empleados[y].cedula = isint("Nuevo No. cedula: ")
+        servicios[x].empleados[y].cedula = valid_numero("Nuevo No. Cedula: ", "El valor ingresado para la cedula es incorrecto")
     if(variable.lower() == "celular" or tipo_modificacion.lower() == "completa"):
-        servicios[x].empleados[y].cel = isint("Nuevo No. cel: ")
+        servicios[x].empleados[y].cel = valid_numero("Nuevo No. Cel: ", "El valor ingresado para el celular es incorrecto")
     if(variable.lower() == "email" or tipo_modificacion.lower() == "completa"):
         servicios[x].empleados[y].email = valid_email("Nuevo Email: ")
 
