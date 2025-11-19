@@ -45,6 +45,8 @@ servicios = []
 usuarios = []
 
 def mostrar_date(d,f = "%B %d, %Y | %A"):
+    #datetime.strptime crea un objeto datetime en base a un string d y un formato dado
+    #sirve para modificar el formato en que se ven las horas y manipulacion horaria accesible, por ejemplo si queremos saber si es martes
     datetime_p = datetime.strptime(d, "%Y-%m-%d")
     return datetime_p.strftime(f)
 
@@ -54,6 +56,7 @@ def valid_date(s):
     while True:
         p = input(s);
         try:
+            # Datetime da un error si el formato del string no es identico al que pide (%Y-%m-%d en este caso)
             datetime_p = datetime.strptime(p, "%Y-%m-%d")
         except ValueError:
             print("El formato en el que ingreso la fecha no es valido, por favor ingrese una fecha con formato valido.")
@@ -62,6 +65,7 @@ def valid_date(s):
             print("La fecha ingresada corresponde a un dia domingo, por favor recuerde que en estos dias no se trabaja.")
             continue
         d = p
+        # Si el formato es correcto lo particiono en partes enteras para calcular la distancia entre la fecha actual y la ingresada
         d = d.split('-')
         for i in range(0,len(d)): d[i] = int(d[i])
         separacion_meses = (((d[0] - c[0]) * 12) + d[1]) - c[1]
@@ -75,6 +79,7 @@ def valid_date(s):
 def valid_email(s):
     while True:
         e = input(s)
+        # el string dentro de re.match significa lo siguiente: (cualquier caracter)@(cualquier caracter).(minimo 2 caracteres de a-z o A-Z)
         valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', e)
         if valid: break
         else: print("El email ingresado no es valido, intentelo de nuevo.")
@@ -118,6 +123,27 @@ def ns_split(x):
             x = x.replace(i, "") #Elimina el caracter no entero de la variable, nos dejaria solamente el numero
     return [int(x), sduracion] # Retona [tiempo, formato], eje: [30, 'min']
 
+def valid_duracion(s):
+    while(1):
+        n = input(s)
+        try:
+            n = ns_split(n)
+        except: 
+            print("El valor ingresado para este campo es invalido, intentelo de nuevo.")
+            continue
+        if (n[1].lower() in ["hr", "min", "s"]) == False:
+            print(f"La unidad de tiempo {n[1].lower()} es invalida, intentelo de nuevo.")
+            continue
+        if(n[1].lower() == "hr"): d = 1
+        elif(n[1].lower() == "min"): d = 60
+        else: d = 3600
+        d = n[0] / d
+        if(d > 9):
+            print(f"La duracion del servicio sobrepasa la cantidad de horas laborales del empleado, por favor ingrese una duracion menor.")
+            continue
+        else: break
+    return n
+
 def creacion_citas(info_servicio, horario):
     duracion = 0 #Placeholder, lo uso por comodidad pues esto luego almacenara la duracion en un formato estandar (minutos)
     ultima_jornada = horario[0] * 60 # Placeholder nuevamente, si el horario es [20, 40] esto seria = 40, lo que permite seguir con [40, 60] de manera mas facil
@@ -145,8 +171,7 @@ def creacion_citas(info_servicio, horario):
 def crear_servicio():
     s1 = Servicio()
     s1.nombre = input("Ingrese el nombre del servicio: ")
-    duracion = input("Ingrese la duracion del servicio (formato: numero-(hr/min/s), eje: 30min, 1hr, 20s): ")
-    duracion = ns_split(duracion)
+    duracion = valid_duracion("Ingrese la duracion del servicio (formato: numero-(hr/min/s), eje: 30min, 1hr, 20s): ")
     s1.Iduracion = duracion[0]
     s1.Sduracion = duracion[1]
     s1.costo = valid_cost("Ingrese el costo del servicio: ")
@@ -177,8 +202,7 @@ def modificar_servicio():
         if(existe_reserva):
             print(f"La duracion del servicio {servicios[x].nombre} no se puede modificar puesto que aun hay reservas activas, estas deben completarse o eliminarse primero.\n")
         else:
-            nueva_duracion = input("Ingrese la nueva duracion del servicio (formato: numero-(hr/min/s), eje: 30min, 1hr, 20s): ")
-            nueva_duracion = ns_split(nueva_duracion)
+            nueva_duracion = valid_duracion("Ingrese la nueva duracion del servicio (formato: numero-(hr/min/s), eje: 30min, 1hr, 20s): ")
             servicios[x].Iduracion = nueva_duracion[0]
             servicios[x].Sduracion = nueva_duracion[1]
     if(variable.lower() == "costo" or variable.lower() == "todo"):
