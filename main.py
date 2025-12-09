@@ -1,5 +1,6 @@
 import copy
 import re
+import sys
 from datetime import datetime
 
 # Todas las variables dentro de clase a las que se le declara un tipo list deben de tener = [], de otro modo si las revisamos y aun no se declaran dan un AttributeError
@@ -43,18 +44,37 @@ servicios = []
 
 #Usuario por default, nuevamente no tiene mayor fin mas que dar practicidad a la hora de testear.
 usuarios = []
+#Funcion para usarla en cada operacion del sistema, para asi salir de la misma, esta es para inputs generales, retorna permitido para evitar errores
+#Las funciones de validacion también, pero hay algunas que podía retornar True como isint
+def cancelar_opcion(texto):
+    if texto == "0":
+        print("Regresando al menú principal...")
+        return "permitido"
+    elif texto == "-1":
+        print("Finalizando programa...")
+        sys.exit()
+    else:
+        return texto
+
 
 def mostrar_date(d,f = "%B %d, %Y | %A"):
     #datetime.strptime crea un objeto datetime en base a un string d y un formato dado
     #sirve para modificar el formato en que se ven las horas y manipulacion horaria accesible, por ejemplo si queremos saber si es martes
     datetime_p = datetime.strptime(d, "%Y-%m-%d")
     return datetime_p.strftime(f)
-
+#A valid date le añadí verificación de si es 0 o -1, si es -1 el sistema termina por completo y si es 0 devuelve True
 def valid_date(s):
     c = datetime.now().strftime('%Y-%m-%d').split('-')
     for i in range(0,len(c)): c[i] = int(c[i])
     while True:
-        p = input(s);
+        p = input(s)
+        if p == "0":
+            print("Regresando al menú principal...")
+            return "permitido"
+        elif p == "-1":
+            print("Finalizando programa...")
+            sys.exit()
+            
         try:
             # Datetime da un error si el formato del string no es identico al que pide (%Y-%m-%d en este caso)
             datetime_p = datetime.strptime(p, "%Y-%m-%d")
@@ -75,41 +95,67 @@ def valid_date(s):
             print("No se puede reservar para una fecha tan lejana, por favor ingrese una fecha que no este a mas de 12 meses de la fecha actual.")
         else: break
     return p
-
+#A valid email le añadí verificación de si es 0 o -1, si es -1 el sistema termina por completo y si es 0 devuelve permitido para evitar error
 def valid_email(s):
     while True:
         e = input(s)
         # el string dentro de re.match significa lo siguiente: (cualquier caracter)@(cualquier caracter).(minimo 2 caracteres de a-z o A-Z)
         valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', e)
         if valid: break
+        elif e == "0":
+            print("Regresando al menú principal...")
+            return "permitido"
+        elif e == "-1":
+            print("Finalizando programa...")
+            sys.exit()
+
+
         else: print("El email ingresado no es valido, intentelo de nuevo.")
     return e
-
+#Valid numero queda con "permitido" en vez de True para que no de error
 def valid_numero(s,c):
     while True:
         e = input(s)
         valid = re.match(r'^[0-9]\d{9}$', e)
         if valid: break
+        elif e == "0":
+            print("Regresando al menú principal...")
+            return "permitido"
+        elif e == "-1":
+            print("Finalizando programa...")
+            sys.exit()
+
         else:
             print(c)
             print("La entrada debe de contener exactamente 10 digitos.")
     return int(e)
-
+#A isint le añadí verificación de si es 0 o -1, si es -1 el sistema termina por completo y si es 0 devuelve True
 def isint(s, e = "El valor ingresado para este campo no es valido, intentelo de nuevo."):
     while True:
+        n = input(s)
+        if n == "0":
+           print("Saliendo al menú principal...")
+           return "permitido"
+        elif n == "-1":
+            print("Finalizando programa...")    
+            sys.exit()
         try:
-            n = int(input(s))
+            return int(n)
+        
         except ValueError:
             print(e)
             continue
+        
         break
     return n
-
+#A valid cost le añadí verificación de si es 0 o -1, si es -1 el sistema termina por completo y si es 0 devuelve True
 def valid_cost(c):
     while(1):
         n = isint(c)
-        if(n < 0): print("El valor del producto debe de ser positivo, intentelo de nuevo.")
-        elif(n==0): print("No se ofrecen servicios pagos, ingrese un valor mayor a cero.")
+        if n == "permitido":
+            return "permitido"
+        if(n <= 0): 
+            print("El valor del producto debe de ser positivo y distinto a 0, intentelo de nuevo.")
         else: break
     return n
 
@@ -132,15 +178,24 @@ def ns_split(x):
             sduracion += i # Si i es texto entonces agregar ese caracter al placeholder
             x = x.replace(i, "") #Elimina el caracter no entero de la variable, nos dejaria solamente el numero
     return [int(x), sduracion] # Retona [tiempo, formato], eje: [30, 'min']
-
+#A valid duracion le añadí verificación de si es 0 o -1, si es -1 el sistema termina por completo y si es 0 nuevamente devuelve "permitido"
+#Queda un poco feo pero sirve
 def valid_duracion(s):
     while(1):
         n = input(s)
+        if n == "0":
+            print("Regresando al menú principal...")
+            return "permitido"
+        elif n == "-1":
+            print("Finalizando programa...")
+            sys.exit()
+    
         try:
             n = ns_split(n)
         except: 
             print("El valor ingresado para este campo es invalido, intentelo de nuevo.")
             continue
+        
         if (n[1].lower() in ["hr", "min", "s"]) == False:
             print(f"La unidad de tiempo {n[1].lower()} es invalida, intentelo de nuevo.")
             continue
@@ -180,29 +235,50 @@ def creacion_citas(info_servicio, horario):
 
 def crear_servicio():
     s1 = Servicio()
-    s1.nombre = input("Ingrese el nombre del servicio: ")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
+    s1.nombre = cancelar_opcion(input("Ingrese el nombre del servicio: "))
+    if s1.nombre == "permitido":
+        return
+    
     duracion = valid_duracion("Ingrese la duracion del servicio (formato: numero-(hr/min/s), eje: 30min, 1hr, 20s): ")
+    if duracion == "permitido":
+        return
     s1.Iduracion = duracion[0]
     s1.Sduracion = duracion[1]
     s1.costo = valid_cost("Ingrese el costo del servicio: ")
+    if s1.costo == "permitido":
+        return
     servicios.append(copy.copy(s1)) # Lo mismo que con las listas. Las clases son objetos mutables, por lo tanto si no usas .copy se pasan por referencia y eso no nos conviene.
+    print("Servicio creado con exito!")
 
 def modificar_servicio():
     if(len(servicios) == 0):
         print("No existe ningun servicio para modificar.")
         return
-
-    print("Lista de servicios disponibles: \n")
+    
+    print("Lista de servicios disponibles")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
-    x = isint("Seleccione el servicio que desea modificar: ") - 1 # El X ingresado se hace con la convencion de 1 hasta len(servicios), pero asi no funciona la lista, esto lo soluciona.
-    if x < 0 or x >= len(servicios):
+    x = isint("Seleccione el servicio que desea modificar: ")# El X ingresado se hace con la convencion de 1 hasta len(servicios), pero asi no funciona la lista, esto lo soluciona.
+    #Añadí la convención despúes de verificar si es 0 o -1 para que no diera error
+    if x == "permitido":
+        return
+    elif x != "permitido":
+        x -= 1
+    elif x < 0 or x >= len(servicios):
         print("El servicio que usted desea modificar no existe, por favor intentelo de nuevo.\n")
         return
 
-    variable = input("Que variable desea modificar? (Nombre, Duracion, Costo o Todo): ")
+    variable = cancelar_opcion(input("Que variable desea modificar? (Nombre, Duracion, Costo o Todo): "))
+    if variable == "permitido":
+        return
     if(variable.lower() == "nombre" or variable.lower() == "todo"):
-        servicios[x].nombre = input("Ingrese el nuevo nombre del servicio: ")
+        servicios[x].nombre = cancelar_opcion(input("Ingrese el nuevo nombre del servicio: "))
+        if servicios[x].nombre == "permitido":
+            return
     if(variable.lower() == "duracion" or variable.lower() == "todo"):
         existe_reserva = False
         for i in range(0, len(servicios[x].empleados)):
@@ -213,10 +289,14 @@ def modificar_servicio():
             print(f"La duracion del servicio {servicios[x].nombre} no se puede modificar puesto que aun hay reservas activas, estas deben completarse o eliminarse primero.\n")
         else:
             nueva_duracion = valid_duracion("Ingrese la nueva duracion del servicio (formato: numero-(hr/min/s), eje: 30min, 1hr, 20s): ")
+            if nueva_duracion == "permitido":
+                return
             servicios[x].Iduracion = nueva_duracion[0]
             servicios[x].Sduracion = nueva_duracion[1]
     if(variable.lower() == "costo" or variable.lower() == "todo"):
         servicios[x].costo = valid_cost("Ingrese el nuevo costo del servicio: ")
+        if servicios[x].costo == "permitido":
+            return
 
     if(variable.lower() == "todo"): print(f"La informacion de {servicios[x].nombre} ha sido modificada con exito")
     else: print(f"El/la {variable.lower()} del servicio ha sido modificado/a")
@@ -226,12 +306,18 @@ def eliminar_servicio():
         print("No existe ningun servicio para eliminar.")
         return
 
-    print("Lista de servicios disponibles: \n")
+    print("Lista de servicios disponibles")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
 
-    x = isint("Seleccione el servicio que desea eliminar: ") - 1 #convencion.
-    if(x < 0 or x >= len(servicios)):
+    x = isint("Seleccione el servicio que desea eliminar: ") #convencion.
+    if x == "permitido":
+        return
+    elif x != "permitido":
+        x -= 1
+    elif(x < 0 or x >= len(servicios)):
         print("El servicio que usted desea eliminar no existe, por favor intentelo de nuevo.\n")
         return
 
@@ -253,11 +339,17 @@ def informacion_servicio():
         print("No existe ningun servicio del cual adquirir informacion.")
         return
 
-    print("De que servicio desea adquirir informacion?: \n")
+    print("De que servicio desea adquirir informacion?")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
-    x = isint("Elija un servicio: ") - 1
-    if(x < 0 or x >= len(servicios)):
+    x = isint("Elija un servicio: ") 
+    if x == "permitido":
+        return
+    elif x != "permitido":
+        x -= 1
+    elif(x < 0 or x >= len(servicios)):
         print("El servicio que usted eligio no existe, intentelo de nuevo.\n")
     else:
         print(f"\nNombre: {servicios[x].nombre}")
@@ -286,19 +378,35 @@ def ingresar_empleado():
         print("No existe ningun servicio al cual ingresar un empleado, cree uno primero.")
         return
     print("A que servicio desea anadir un empleado?: \n")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
-    x = isint("Elija el servicio: ") - 1
-    if(x<0 or x>=len(servicios)):
+    x = isint("Elija el servicio: ")
+    if x == "permitido":
+        return
+    elif x != "permitido":
+        x -= 1
+    elif(x < 0 or x >= len(servicios)):
         print("El servicio que ha elegido no existe, intentelo de nuevo.\n")
         return
     p1 = Empleado()
     print("\nIngrese los datos del empleado: ")
-    p1.nombre = input("Nombres: ")
-    p1.apellido = input("Apellidos: ")
+    p1.nombre = cancelar_opcion(input("Nombres: "))
+    if p1.nombre == "permitido":
+        return
+    p1.apellido = cancelar_opcion(input("Apellidos: "))
+    if p1.apellido == "permitido":
+        return
     p1.cedula = valid_numero("Cedula: ", "El valor ingresado para la cedula es incorrecto")
+    if p1.cedula == "permitido":
+        return
     p1.cel = valid_numero("Celular: ", "El valor ingresado para el celular es incorrecto")
+    if p1.cel == "permitido":
+        return
     p1.email = valid_email("Email: ")
+    if p1.email == "permitido":
+        return
     horas = horario_empleado(p1.horario)
     lista_horas = creacion_citas(servicios[x], horas)
     p1.disponibilidad = lista_horas
@@ -310,18 +418,28 @@ def modificar_empleado():
         print("No existen servicios ni empleados disponibles, cree unos primero.")
         return
     print("A que servicio pertenece el empleado?: \n")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
-    x = isint("Elija el servicio: ") - 1
-    if(x < 0 or x >= len(servicios)):
+    x = isint("Elija el servicio: ")
+    if x == "permitido":
+        return
+    elif x != "permitido":
+        x -= 1
+    elif(x < 0 or x >= len(servicios)):
         print("El servicio seleccionado no existe, intentelo nuevamente.\n")
         return
 
     print("Lista de empleados: \n")
     for i in range(0, len(servicios[x].empleados)):
         print(f"[{i+1}] {servicios[x].empleados[i].nombre} {servicios[x].empleados[i].apellido}")
-    y = isint("Seleccione el empleado al cual desea modificarle informacion: ") - 1
-    if(y<0 or y >= len(servicios[x].empleados)):
+    y = isint("Seleccione el empleado al cual desea modificarle informacion: ")
+    if y == "permitido":
+        return
+    elif y != "permitido":
+        y -= 1
+    elif(y < 0 or y >= len(servicios[x].empleados)):
         print("El empleado que usted selecciono no existe, intentelo de nuevo.\n")
         return
 
@@ -330,14 +448,18 @@ def modificar_empleado():
         print(f"\nEl empleado {servicios[x].empleados[y].nombre} tiene reservas activas en este momento por lo que no es posible modificar su informacion en el sistema, las reservas deben completarse o eliminarse primero.\n")
         return
 
-    tipo_modificacion = input("Desea modificar toda su informacion o solo un dato en especifico? (completa/especifica): ")
+    tipo_modificacion = cancelar_opcion(input("Desea modificar toda su informacion o solo un dato en especifico? (completa/especifica): "))
+    if tipo_modificacion == "permitido":
+        return
     variable = ""
     # Aqui uso nuevamente el lower para facil verificacion
     if(tipo_modificacion.lower() in ["especifica", "completa"]) == False:
         print("Esa opcion no existe, por favor intentelo de nuevo")
         return
     if(tipo_modificacion.lower() == "especifica"):
-        variable = input("Que variable desea modificar? (cedula, celular o email): ")
+        variable = cancelar_opcion(input("Que variable desea modificar? (cedula, celular o email): "))
+        if variable == "permitido":
+            return
     if(variable.lower() == "cedula" or tipo_modificacion.lower() == "completa"):
         servicios[x].empleados[y].cedula = valid_numero("Nuevo No. Cedula: ", "El valor ingresado para la cedula es incorrecto")
     if(variable.lower() == "celular" or tipo_modificacion.lower() == "completa"):
@@ -353,10 +475,16 @@ def eliminar_empleado():
         print("Esta funcion no esta disponible puesto que no existen empleado para eliminar.")
         return
     print("A que servicio pertenece el empleado que desea eliminar?: \n")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
-    x = isint("Elija el servicio: ") - 1
-    if(x<0 or x >= len(servicios)):
+    x = isint("Elija el servicio: ")
+    if x == "permitido":
+        return
+    elif x != "permitido":
+        x -= 1
+    elif(x < 0 or x >= len(servicios)):
         print("El servicio que usted selecciono no existe, intentelo de nuevo.\n")
         return
     
@@ -364,8 +492,12 @@ def eliminar_empleado():
         print("\nQue empleado del servicio desea eliminar?: ")
         for i in range(0, len(servicios[x].empleados)):
             print(f"[{i+1}] {servicios[x].empleados[i].nombre} {servicios[x].empleados[i].apellido}")
-        y = isint("Elija un empleado: ") - 1
-        if(y < 0 or y > len(servicios[x].empleados)):
+        y = isint("Elija un empleado: ")
+        if y == "permitido":
+         return
+        elif y != "permitido":
+          y -= 1
+        elif(y < 0 or y > len(servicios[x].empleados)):
             print("El empleado que usted seleccion no existe, intentelo de nuevo.\n")
             return
 
@@ -380,22 +512,45 @@ def anadir_reserva(user_index):
         print("No existe ningun servicio al cual ingresar una reserva.")
         return
     print("En que servicio desea realizar su reserva?: ")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
+
     for i in range(0, len(servicios)):
         print(f"[{i+1}] {servicios[i].nombre}")
-    servicio = isint("Que servicio desea: ") - 1
+    servicio = isint("Que servicio desea?: ")
+    if servicio == "permitido":
+        return
+    elif servicio != "permitido":
+        servicio -= 1
+
     print("\nCon que empleado desea realizar su reserva?: ")
     for i in range(0, len(servicios[servicio].empleados)):
-        print(f"\nEmpleado {i+1}: ")
+        print(f"\nEmpleado {i+1}: ") 
         print(f"Nombres: {servicios[servicio].empleados[i].nombre}")
         print(f"Apellidos: {servicios[servicio].empleados[i].apellido}")
         print(f"Cedula: {servicios[servicio].empleados[i].cedula}")
         print(f"Celular: {servicios[servicio].empleados[i].cel}")
         print(f"Email: {servicios[servicio].empleados[i].email}")
-    empleado = isint("Seleccione el empleado que desea: ") - 1
+
+    
+
+    empleado = isint("Seleccione el empleado que desea: ")
+    if empleado == "permitido":
+        return
+    elif empleado != "permitido":
+        empleado -= 1
+    
     fecha = valid_date("En que fecha lo desea? (se usa formato yyyy-mm-dd, eje: 2024-03-26): ")
+    if fecha == "permitido":
+        return
     for i in range(0, len(servicios[servicio].empleados[i].disponibilidad)):
         print(f"Horario {i+1}: {servicios[servicio].empleados[empleado].disponibilidad[i]}")
-    hora = isint("En que horario lo desea?: ") - 1
+    hora = isint("En que horario lo desea?: ")
+    if hora == "permitido":
+        return
+    elif hora != "permitido":
+         hora -= 1
+
     hora_seleccionada = servicios[servicio].empleados[empleado].disponibilidad[hora]
     ocupado = False
     # Si la cantidad de reservas es nula entonces el for dara un error puesto que habria un AttributeError por la clase (Fecha y hora vacia).
@@ -407,7 +562,7 @@ def anadir_reserva(user_index):
     if ocupado:
         print(f"\n El horario {hora_seleccionada} en la fecha {fecha} NO está disponible con {servicios[servicio].empleados[empleado].nombre}, seleccione otra fecha, hora o empleado.")
         return
-    
+
     reserva = Reserva(servicios[servicio].empleados[empleado].nombre, usuarios[user_index].nombre, fecha, hora_seleccionada)
 
     servicios[servicio].empleados[empleado].reservas.append(copy.copy(reserva))
@@ -426,9 +581,15 @@ def editar_reserva(user_index):
 
     for i in range(len(usuarios[user_index].reservas)):
         print(f"[{i+1}] {usuarios[user_index].reservas[i]}")
-
-    reserva_editar = isint("\n¿Qué reserva desea editar?: ") - 1
-    if reserva_editar < 0 or reserva_editar >= len(usuarios[user_index].reservas):
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
+    reserva_editar = isint("\n¿Qué reserva desea editar?: ")
+    if reserva_editar == "permitido":
+        return
+    elif reserva_editar != "permitido":
+        reserva_editar -= 1
+    
+    elif reserva_editar < 0 or reserva_editar >= len(usuarios[user_index].reservas):
         print("Reserva inválida.")
         return
 
@@ -443,16 +604,25 @@ def editar_reserva(user_index):
                 empleado = servicios[s].empleados[e]
 
     print(f"\nReserva actual con {empleado.nombre} el {fecha_actual} a las {hora_actual}")
-    opcion = input("¿Qué desea cambiar? (fecha/hora/ambas): ")
+    opcion = cancelar_opcion(input("¿Qué desea cambiar? (fecha/hora/ambas): "))
+    if opcion == "permitido":
+        return
 
-    if opcion.lower() == "fecha" or opcion.lower() == "ambas": nueva_fecha = valid_date("Nueva fecha (yyyy-mm-dd): ")
+    if opcion.lower() == "fecha" or opcion.lower() == "ambas": 
+        nueva_fecha = valid_date("Nueva fecha (yyyy-mm-dd): ")
+        if nueva_fecha == "permitido":
+            return
     else: nueva_fecha = fecha_actual
 
     if opcion.lower() == "hora" or opcion.lower() == "ambas":
         for i in range(len(empleado.disponibilidad)):
             print(f"[{i+1}] {empleado['Disponibilidad'][i]}")
-        hr = isint("Seleccione nueva hora: ") - 1
-        if hr < 0 or hr >= len(empleado.disponibilidad):
+        hr = isint("Seleccione nueva hora: ")
+        if hr == "permitido":
+         return
+        elif hr != "permitido":
+          hr -= 1
+        elif hr < 0 or hr >= len(empleado.disponibilidad):
             print("Hora inválida.")
             return
         nueva_hora = empleado.disponibilidad[hr]
@@ -482,11 +652,17 @@ def cancelar_reserva(user_index):
             return
 
         print("Lista de usuarios con reservas: \n")
+        print("Presione 0 en cualquier campo para volver al menú")
+        print("Presione -1 en cualquier campo para salir del sistema \n")
         for i in range(0, len(usuarios[user_index].reservas)):
             print(f"[{i+1}] {usuarios[user_index].reservas[i]}")
         
-        reserva_cancelar = isint("¿Qué reserva desea cancelar?: ") - 1 #convencion
-        if reserva_cancelar < 0 or reserva_cancelar >= len(usuarios[user_index].reservas):
+        reserva_cancelar = isint("¿Qué reserva desea cancelar?: ") #convencion
+        if reserva_cancelar == "permitido":
+          return
+        elif reserva_cancelar != "permitido":
+           reserva_cancelar -= 1
+        elif reserva_cancelar < 0 or reserva_cancelar >= len(usuarios[user_index].reservas):
             print("La reserva que seleccionaste no existe.\n")
         else:
             reserva_eliminada = usuarios[user_index].reservas.pop(reserva_cancelar)
@@ -506,10 +682,27 @@ def mostrar_reservas():   #Con esta funcion voy a mostrar las reservas de todos 
                 print(f"  Empleado {e+1}: {empleado.nombre} {empleado.apellido} (Sin reservas)")
         print()  
 
-def crear_usuario():
+def crear_usuario_inicio():
     print("\nCreando un nuevo usuario.")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
+    
     user = Usuario()
     user.nombre = input("Ingrese su nombre completo: ")
+    if user.nombre == "-1":
+        print("Finalizando programa...")
+        sys.exit()
+    usuarios.append(copy.copy(user))
+    print(f"Se ha creado al usuario {user.nombre} con exito.\n")
+
+def crear_usuario_generico():
+    print("\nCreando un nuevo usuario.")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
+    
+    user = Usuario()
+    user.nombre = cancelar_opcion(input("Ingrese su nombre completo: "))
+    if user.nombre == "permitido":
+        return
     usuarios.append(copy.copy(user))
     print(f"Se ha creado al usuario {user.nombre} con exito.\n")
 
@@ -520,10 +713,16 @@ def cambiar_usuario(user_index):
         return
 
     print("\nUsuarios disponibles: ")
+    print("Presione 0 en cualquier campo para volver al menú")
+    print("Presione -1 en cualquier campo para salir del sistema \n")
     for i in range(0, len(usuarios)):
         print(f"[{i+1}] {usuarios[i].nombre}")
-    nuser = isint("Que usuario desea usar?: ") - 1
-    if(nuser < 0 or nuser > len(usuarios)):
+    nuser = isint("Que usuario desea usar?: ")
+    if nuser == "permitido":
+        return
+    elif nuser != "permitido":
+        nuser -= 1
+    elif(nuser < 0 or nuser > len(usuarios)):
         print("El usuario que usted eligio no existe, por favor intentelo de nuevo.\n")
         return user_index #Fijate en que si falla retorna user_index, o sea, el usuario actual.
     else:
@@ -533,7 +732,7 @@ def cambiar_usuario(user_index):
 
 def mostrar_menu():
     print("\n--- Bienvenido al sistema de gestion de servicios ---")
-    crear_usuario()
+    crear_usuario_inicio()
     user_index = 0 # Defino user_index y su default, todas las funciones que requieren saber el usuario actual la necesitan como argumento
 
     while True:
@@ -557,9 +756,9 @@ def mostrar_menu():
 
         # Si se le pasa a esta variable un valor como 'uj3' esto permite que el programa no tire error y simplemente vuelva a pedir que ingrese la opcion
         opcion = isint("Seleccione una opción: ", "Por favor use los numeros a la izquierda, entradas con texto no son permitidas.")
-
+                       
         if opcion == 1:
-            anadir_reserva(user_index)
+            anadir_reserva(user_index)        
         elif opcion == 2:
             editar_reserva(user_index)
         elif opcion == 3:
@@ -581,12 +780,12 @@ def mostrar_menu():
         elif opcion == 11:
             informacion_servicio()
         elif opcion == 12:
-            crear_usuario()
+            crear_usuario_generico()
         elif opcion == 13:
             user_index = cambiar_usuario(user_index) #Cambiar_usuario solo cambia el index por su valor de retorno, por eso no la llamo unicamente como a las demas y cambio directamente el user_index.
         elif opcion == 0:
             print("Finalizando el programa.\n")
-            break
+            sys.exit()
         else:
             #Para numeros fuera de rango
             print("Opción inválida. Intente de nuevo.\n")
