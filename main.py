@@ -47,55 +47,7 @@ class Servicio:
     Sduracion: str
     costo: int
 
-def load_empleado(empleado):
-    emplist = []
-    for x in empleado:
-        e1 = Empleado()
-        e1.nombre = x['nombre']
-        e1.apellido= x['apellido']
-        e1.email= x['email']
-        e1.cedula= x['cedula']
-        e1.cel = x['cel']
-        e1.disponibilidad = x['disponibilidad']
-        for j in x['reservas']:
-            e1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['hora'])))
-        emplist.append(copy.copy(e1)) 
-    return emplist
 
-def load_info():
-    try: open("services.json", 'r')
-    except:
-        print("No existen archivos de guardado para cargar.\n")
-        return
-    print("Cargando informacion, tenga en cuenta que cuando carga informacion cualquier informacion previa en el sistema se sobreescribe.\n")
-    # Servicios #
-    with open("services.json", 'r') as f:
-        info = json.load(f)
-    # Notese que leer info deberia sobreescribir la info o habrian problemas, por eso es que usamos .clear()
-    servicios.clear()
-    for x in info:
-        s1 = Servicio()
-        s1.nombre = x['nombre']
-        s1.Iduracion = x['Iduracion']
-        s1.Sduracion = x['Sduracion']
-        s1.costo = x['costo']
-        s1.empleados = load_empleado(x['empleados'])
-        servicios.append(copy.copy(s1))
-    # Usuarios #
-    with open("users.json", 'r') as f:
-        info = json.load(f)
-    usuarios.clear()
-    for x in info:
-        u1 = Usuario()
-        u1.nombre = x['nombre']
-        for j in x['reservas']:
-            u1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['hora'])))
-        usuarios.append(copy.copy(u1))
-
-def save_info():
-    print("Guardando informacion, tenga en cuenta que cada vez que lo hace la informacion se sobreescribe.\n")
-    with open("services.json", 'w') as f: json.dump(servicios, f, indent=4, default=vars)
-    with open("users.json", 'w') as f: json.dump(usuarios, f, indent=4, default=vars)
 
 #Funcion para usarla en cada operacion del sistema, para asi salir de la misma, esta es para inputs generales, retorna permitido para evitar errores
 #Las funciones de validacion también, pero hay algunas que podía retornar True como isint
@@ -212,6 +164,14 @@ def valid_cost(c):
         else: break
     return n
 
+def valid_yn(c):
+    while(1):
+        n = cancelar_opcion(input(c).lower())
+        if n == "permitido": return n
+        if(n in ["yes", "si", "no"]) == False: print("La respuesta debe de ser unicamente [Si/No] o [Yes/No], intente de nuevo.")
+        else: break
+    return n
+
 #convierte string en formato "10:00-12:20" en una lista de la forma [10.00, 12.20]
 def horario_empleado(x):
     x = x.split('-') # Separa el 10:00 del 12:20 en un alista
@@ -260,6 +220,68 @@ def valid_duracion(s):
             continue
         else: break
     return n
+
+def load_empleado(empleado):
+    emplist = []
+    for x in empleado:
+        e1 = Empleado()
+        e1.nombre = x['nombre']
+        e1.apellido= x['apellido']
+        e1.email= x['email']
+        e1.cedula= x['cedula']
+        e1.cel = x['cel']
+        e1.disponibilidad = x['disponibilidad']
+        for j in x['reservas']:
+            e1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['hora'])))
+        emplist.append(copy.copy(e1)) 
+    return emplist
+
+def load_info(f):
+    try: open("services.json", 'r')
+    except:
+        print("No existen archivos de guardado para cargar.\n")
+        return
+
+    if not f: 
+        c = valid_yn("Esta seguro de que desea cargar la informacion? Esto sobreescribira toda la informacion previa. [Si/No]: ")
+        if(c in ["permitido", "no"]):
+            print("Operacion cancelada.")
+            return
+        else: print("Cargando informacion, tenga en cuenta que cuando carga informacion cualquier informacion previa en el sistema se sobreescribe.\n")
+
+    # Servicios #
+    with open("services.json", 'r') as f:
+        info = json.load(f)
+    # Notese que leer info deberia sobreescribir la info o habrian problemas, por eso es que usamos .clear()
+    servicios.clear()
+    for x in info:
+        s1 = Servicio()
+        s1.nombre = x['nombre']
+        s1.Iduracion = x['Iduracion']
+        s1.Sduracion = x['Sduracion']
+        s1.costo = x['costo']
+        s1.empleados = load_empleado(x['empleados'])
+        servicios.append(copy.copy(s1))
+    # Usuarios #
+    with open("users.json", 'r') as f:
+        info = json.load(f)
+    usuarios.clear()
+    for x in info:
+        u1 = Usuario()
+        u1.nombre = x['nombre']
+        for j in x['reservas']:
+            u1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['hora'])))
+        usuarios.append(copy.copy(u1))
+
+def save_info():
+    c = valid_yn("Esta seguro de que desea guardar la informacion? Esto sobreescribira toda la informacion previa. [Si/No]: ")
+    if(c in ["permitido", "no"]):
+        print("Operacion cancelada.")
+        return
+
+    print("Informacion guardada.\n")
+    with open("services.json", 'w') as f: json.dump(servicios, f, indent=4, default=vars)
+    with open("users.json", 'w') as f: json.dump(usuarios, f, indent=4, default=vars)
 
 def creacion_citas(info_servicio, horario):
     duracion = 0 #Placeholder, lo uso por comodidad pues esto luego almacenara la duracion en un formato estandar (minutos)
@@ -716,20 +738,29 @@ def mostrar_reservas():   #Con esta funcion voy a mostrar las reservas de todos 
 def crear_usuario_inicio():
     print("\nCreando un nuevo usuario.")
     print("Presione -1 en cualquier campo para salir del sistema \n")
-    
-    user = Usuario()
-    user.nombre = input("Ingrese su nombre completo: ")
-    if user.nombre == "-1":
-        print("Finalizando programa...")
-        sys.exit()
-    usuarios.append(copy.copy(user))
-    print(f"Se ha creado al usuario {user.nombre} con exito.\n")
+
+    avaible_info = True
+    try: open("users.json", 'r')
+    except:
+        avaible_info = False
+
+    if avaible_info:
+        print("Se ha encontrado informacion disponible en el sistema, esta se cargara. En caso de que desee crear otro usuario esta opcion estara habilidata en el menu principal.")
+        load_info(True) # El true es simplemente un hint para que no muestre el mensaje de sobreescribir al inicio #
+    else:
+        user = Usuario()
+        user.nombre = input("Ingrese su nombre completo: ")
+        if user.nombre == "-1":
+            print("Finalizando programa...")
+            sys.exit()
+        usuarios.append(copy.copy(user))
+        print(f"Se ha creado al usuario {user.nombre} con exito.\n")
 
 def crear_usuario_generico():
     print("\nCreando un nuevo usuario.")
     print("Presione 0 en cualquier campo para volver al menú")
     print("Presione -1 en cualquier campo para salir del sistema \n")
-    
+
     user = Usuario()
     user.nombre = cancelar_opcion(input("Ingrese su nombre completo: "))
     if user.nombre == "permitido": return
@@ -738,9 +769,15 @@ def crear_usuario_generico():
 
 # Aqui le paso como argumento user_index de la funcion principal por practicidad, si la funcion falla necesita de este argumento para que no termine el programa y simplemente siga usando el mismo usuario que eligio hasta el momento
 def cambiar_usuario(user_index):
-    if(len(usuarios) == 0):
+    if(len(usuarios) == 1):
         print("Usted es el unico usuario existente.")
-        return
+        c = valid_yn("Desea anadir un nuevo usuario? [Si/No]: ")
+        if(c in ["permitido", "no"]):
+            print("Se seguira usando el usuario actual.")
+            return 0
+        else:
+            crear_usuario_generico()
+            return 1
 
     print("\nUsuarios disponibles: ")
     print("Presione 0 en cualquier campo para volver al menú")
@@ -750,7 +787,7 @@ def cambiar_usuario(user_index):
     nuser = isint("Que usuario desea usar?: ")
     if nuser == "permitido": return
     else: nuser -= 1
-    if(nuser < 0 or nuser > len(usuarios)):
+    if(nuser < 0 or nuser >= len(usuarios)):
         print("El usuario que usted eligio no existe, por favor intentelo de nuevo.\n")
         return user_index #Fijate en que si falla retorna user_index, o sea, el usuario actual.
     else:
@@ -816,7 +853,7 @@ def mostrar_menu():
         elif opcion == 14:
             save_info()
         elif opcion == 15:
-            load_info()
+            load_info(False)
         #elif opcion == 0:
         #    print("Finalizando el programa.\n")
         #    sys.exit()
