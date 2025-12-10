@@ -1,7 +1,17 @@
 import copy
 import re
 import sys
+import json
 from datetime import datetime
+
+# Global variables
+fecha_hoy = datetime.now().strftime('%B %d, %Y | %A')
+
+# Lista que contendra todos los servicios que declaremos para el sistema.
+servicios = []
+
+#Usuario por default, nuevamente no tiene mayor fin mas que dar practicidad a la hora de testear.
+usuarios = []
 
 # Todas las variables dentro de clase a las que se le declara un tipo list deben de tener = [], de otro modo si las revisamos y aun no se declaran dan un AttributeError
 # Notese que esto sucede con cualquier variable que aun no este declarada, es simplemente que en el programa recurrimos mas a revisar listas que pueden estar vacias, por eso unicamente les asignamos un valor a la lista.
@@ -12,46 +22,62 @@ class Reserva:
         self.nombre_cliente = nombre_cliente
         self.fecha = fecha
         self.hora = hora
-    def save(self, fname):
-        with open(fname, 'w') as f: json.dump(self._dict_, f, indent=4)
 
 class Usuario:
     def __init__(self):
         self.reservas: list[Reserva] = []
-        self.nombre: str
-    def save(self, fname):
-        with open(fname, 'w') as f: json.dump(self._dict_, f, indent=4)
+    nombre: str
 
 class Empleado:
     def __init__(self):
         self.disponibilidad: list = []
         self.reservas: list[Reserva] = []
-        self.nombre: str
-        self.apellido: str
-        self.email: str
-        self.cedula: int
-        self.cel: int
+    nombre: str
+    apellido: str
+    email: str
+    cedula: int
+    cel: int
     horario = "8:00-17:00"
-    def save(self, fname):
-        with open(fname, 'w') as f: json.dump(self._dict_, f, indent=4)
 
 class Servicio:
     def __init__(self):
         self.empleados: list[Empleado] = []
-        self.nombre: str
-        self.Iduracion: int
-        self.Sduracion: str
-        self.costo: int
-    def save(self, fname):
-        with open(fname, 'w') as f: json.dump(self._dict_, f, indent=4)
+    nombre: str
+    Iduracion: int
+    Sduracion: str
+    costo: int
 
-fecha_hoy = datetime.now().strftime('%B %d, %Y | %A')
+def load_empleado(empleado):
+    emplist = []
+    for x in empleado:
+        e1 = Empleado()
+        e1.nombre = x['nombre']
+        e1.apellido= x['apellido']
+        e1.email= x['email']
+        e1.cedula= x['cedula']
+        e1.cel = x['cel']
+        e1.disponibilidad = x['disponibilidad']
+        emplist.append(copy.copy(e1)) 
 
-# Lista que contendra todos los servicios que declaremos para el sistema.
-servicios = []
+    return emplist
+    
 
-#Usuario por default, nuevamente no tiene mayor fin mas que dar practicidad a la hora de testear.
-usuarios = []
+def load_info(fname):
+    with open(fname, 'r') as f:
+        info = json.load(f)
+    # Notese que leer info deberia sobreescribir la info o habrian problemas, por eso es que usamos .clear()
+    servicios.clear()
+    for x in info:
+        s1 = Servicio()
+        s1.nombre = x['nombre']
+        s1.Iduracion = x['Iduracion']
+        s1.Sduracion = x['Sduracion']
+        s1.costo = x['costo']
+        s1.empleados = load_empleado(x['empleados'])
+
+def save_info(fname):
+    with open(fname, 'w') as f: json.dump(servicios, f, indent=4, default=vars)
+
 #Funcion para usarla en cada operacion del sistema, para asi salir de la misma, esta es para inputs generales, retorna permitido para evitar errores
 #Las funciones de validacion también, pero hay algunas que podía retornar True como isint
 def cancelar_opcion(texto):
@@ -726,6 +752,7 @@ def mostrar_menu():
         print("11. Informacion de un servicio.")
         print("12. Crear nuevo usuario.")
         print("13. Cambiar de usuario.")
+        print("14. Guardar Informacion.")
         print("-1. Salir")
 
         # Si se le pasa a esta variable un valor como 'uj3' esto permite que el programa no tire error y simplemente vuelva a pedir que ingrese la opcion
@@ -757,6 +784,10 @@ def mostrar_menu():
             crear_usuario_generico()
         elif opcion == 13:
             user_index = cambiar_usuario(user_index) #Cambiar_usuario solo cambia el index por su valor de retorno, por eso no la llamo unicamente como a las demas y cambio directamente el user_index.
+        elif opcion == 14:
+            save_info("test.json")
+        elif opcion == 15:
+            load_info("test.json")
         #elif opcion == 0:
         #    print("Finalizando el programa.\n")
         #    sys.exit()
