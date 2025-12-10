@@ -17,10 +17,11 @@ usuarios = []
 # Notese que esto sucede con cualquier variable que aun no este declarada, es simplemente que en el programa recurrimos mas a revisar listas que pueden estar vacias, por eso unicamente les asignamos un valor a la lista.
 # Todas las variables mutables se agregan en __init__ para evitar problemas con la memoria
 class Reserva:
-    def __init__(self, nombre_empleado: str, nombre_cliente: str, fecha: str, hora: list = []):
+    def __init__(self, nombre_empleado: str, nombre_cliente: str, fecha: str, servicio:str, hora: list = []):
         self.nombre_empleado = nombre_empleado
         self.nombre_cliente = nombre_cliente
         self.fecha = fecha
+        self.servicio = servicio
         self.hora = hora
 
 class Usuario:
@@ -232,7 +233,7 @@ def load_empleado(empleado):
         e1.cel = x['cel']
         e1.disponibilidad = x['disponibilidad']
         for j in x['reservas']:
-            e1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['hora'])))
+            e1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['servicio'], j['hora'])))
         emplist.append(copy.copy(e1)) 
     return emplist
 
@@ -270,7 +271,7 @@ def load_info(f):
         u1 = Usuario()
         u1.nombre = x['nombre']
         for j in x['reservas']:
-            u1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['hora'])))
+            u1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['servicio'], j['hora'])))
         usuarios.append(copy.copy(u1))
 
 def save_info():
@@ -624,7 +625,7 @@ def anadir_reserva(user_index):
         print(f"\n El horario {hora_seleccionada} en la fecha {fecha} NO está disponible con {servicios[servicio].empleados[empleado].nombre}, seleccione otra fecha, hora o empleado.")
         return
 
-    reserva = Reserva(servicios[servicio].empleados[empleado].nombre, usuarios[user_index].nombre, fecha, hora_seleccionada)
+    reserva = Reserva(servicios[servicio].empleados[empleado].nombre, usuarios[user_index].nombre, fecha, servicios[servicio].nombre, hora_seleccionada)
 
     servicios[servicio].empleados[empleado].reservas.append(copy.copy(reserva))
     usuarios[user_index].reservas.append(copy.copy(reserva))
@@ -641,7 +642,7 @@ def editar_reserva(user_index):
         return
 
     for i in range(len(usuarios[user_index].reservas)):
-        print(f"[{i+1}] {usuarios[user_index].reservas[i]}")
+        print(f"[{i+1}] ({usuarios[user_index].nombre}) {usuarios[user_index].reservas[i].servicio} con {usuarios[user_index].reservas[i].nombre_empleado} el {usuarios[user_index].reservas[i].fecha}")
     print("Presione 0 en cualquier campo para volver al menú")
     print("Presione -1 en cualquier campo para salir del sistema \n")
     reserva_editar = isint("\n¿Qué reserva desea editar?: ")
@@ -710,7 +711,7 @@ def cancelar_reserva(user_index):
         print("Presione 0 en cualquier campo para volver al menú")
         print("Presione -1 en cualquier campo para salir del sistema \n")
         for i in range(0, len(usuarios[user_index].reservas)):
-            print(f"[{i+1}] {usuarios[user_index].reservas[i]}")
+            print(f"[{i+1}] ({usuarios[user_index].nombre}) {usuarios[user_index].reservas[i].servicio} con {usuarios[user_index].reservas[i].nombre_empleado} el {usuarios[user_index].reservas[i].fecha}")
         
         reserva_cancelar = isint("¿Qué reserva desea cancelar?: ") #convencion
         if reserva_cancelar == "permitido": return
