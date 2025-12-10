@@ -57,13 +57,19 @@ def load_empleado(empleado):
         e1.cedula= x['cedula']
         e1.cel = x['cel']
         e1.disponibilidad = x['disponibilidad']
+        for j in x['reservas']:
+            e1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['hora'])))
         emplist.append(copy.copy(e1)) 
-
     return emplist
-    
 
-def load_info(fname):
-    with open(fname, 'r') as f:
+def load_info():
+    try: open("services.json", 'r')
+    except:
+        print("No existen archivos de guardado para cargar.\n")
+        return
+    print("Cargando informacion, tenga en cuenta que cuando carga informacion cualquier informacion previa en el sistema se sobreescribe.\n")
+    # Servicios #
+    with open("services.json", 'r') as f:
         info = json.load(f)
     # Notese que leer info deberia sobreescribir la info o habrian problemas, por eso es que usamos .clear()
     servicios.clear()
@@ -74,9 +80,22 @@ def load_info(fname):
         s1.Sduracion = x['Sduracion']
         s1.costo = x['costo']
         s1.empleados = load_empleado(x['empleados'])
+        servicios.append(copy.copy(s1))
+    # Usuarios #
+    with open("users.json", 'r') as f:
+        info = json.load(f)
+    usuarios.clear()
+    for x in info:
+        u1 = Usuario()
+        u1.nombre = x['nombre']
+        for j in x['reservas']:
+            u1.reservas.append(copy.copy(Reserva(j['nombre_empleado'], j['nombre_cliente'], j['fecha'], j['hora'])))
+        usuarios.append(copy.copy(u1))
 
-def save_info(fname):
-    with open(fname, 'w') as f: json.dump(servicios, f, indent=4, default=vars)
+def save_info():
+    print("Guardando informacion, tenga en cuenta que cada vez que lo hace la informacion se sobreescribe.\n")
+    with open("services.json", 'w') as f: json.dump(servicios, f, indent=4, default=vars)
+    with open("users.json", 'w') as f: json.dump(usuarios, f, indent=4, default=vars)
 
 #Funcion para usarla en cada operacion del sistema, para asi salir de la misma, esta es para inputs generales, retorna permitido para evitar errores
 #Las funciones de validacion también, pero hay algunas que podía retornar True como isint
@@ -517,7 +536,7 @@ def eliminar_empleado():
         y = isint("Elija un empleado: ")
         if y == "permitido": return
         else: y -= 1
-        if(y < 0 or y > len(servicios[x].empleados)):
+        if(y < 0 or y >= len(servicios[x].empleados)):
             print("El empleado que usted seleccion no existe, intentelo de nuevo.\n")
             return
 
@@ -540,6 +559,9 @@ def anadir_reserva(user_index):
     servicio = isint("Que servicio desea?: ")
     if servicio == "permitido": return
     else: servicio -= 1
+    if servicio < 0 or servicio >= len(servicios):
+        print("El servicio que usted selecciono no existe, intentelo de nuevo.\n")
+        return
 
     print("\nCon que empleado desea realizar su reserva?: ")
     for i in range(0, len(servicios[servicio].empleados)):
@@ -553,6 +575,9 @@ def anadir_reserva(user_index):
     empleado = isint("Seleccione el empleado que desea: ")
     if empleado == "permitido": return
     else: empleado -= 1
+    if empleado < 0 or empleado >= len(servicios[servicio].empleados):
+        print("El empleado que usted selecciono no existe, intentelo de nuevo.\n")
+        return
     
     fecha = valid_date("En que fecha lo desea? (se usa formato yyyy-mm-dd, eje: 2024-03-26): ")
     if fecha == "permitido": return
@@ -561,6 +586,9 @@ def anadir_reserva(user_index):
     hora = isint("En que horario lo desea?: ")
     if hora == "permitido": return
     else: hora -= 1
+    if hora < 0 or hora >= len(servicios[servicio].empleados[empleado].disponibilidad):
+        print("La hora que seleccionaste no existe, intentelo de nuevo.\n")
+        return
 
     hora_seleccionada = servicios[servicio].empleados[empleado].disponibilidad[hora]
     ocupado = False
@@ -753,6 +781,7 @@ def mostrar_menu():
         print("12. Crear nuevo usuario.")
         print("13. Cambiar de usuario.")
         print("14. Guardar Informacion.")
+        print("15. Cargar Informacion.")
         print("-1. Salir")
 
         # Si se le pasa a esta variable un valor como 'uj3' esto permite que el programa no tire error y simplemente vuelva a pedir que ingrese la opcion
@@ -785,9 +814,9 @@ def mostrar_menu():
         elif opcion == 13:
             user_index = cambiar_usuario(user_index) #Cambiar_usuario solo cambia el index por su valor de retorno, por eso no la llamo unicamente como a las demas y cambio directamente el user_index.
         elif opcion == 14:
-            save_info("test.json")
+            save_info()
         elif opcion == 15:
-            load_info("test.json")
+            load_info()
         #elif opcion == 0:
         #    print("Finalizando el programa.\n")
         #    sys.exit()
