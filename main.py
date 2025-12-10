@@ -651,7 +651,7 @@ def editar_reserva(user_index):
 
     if opcion.lower() == "hora" or opcion.lower() == "ambas":
         for i in range(len(empleado.disponibilidad)):
-            print(f"[{i+1}] {empleado['Disponibilidad'][i]}")
+            print(f"[{i+1}] {empleado.disponibilidad[i]}")
         hr = isint("Seleccione nueva hora: ")
         if hr == "permitido": return
         else: hr -= 1
