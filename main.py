@@ -786,7 +786,7 @@ def cambiar_usuario(user_index):
     for i in range(0, len(usuarios)):
         print(f"[{i+1}] {usuarios[i].nombre}")
     nuser = isint("Que usuario desea usar?: ")
-    if nuser == "permitido": return
+    if nuser == "permitido": return user_index
     else: nuser -= 1
     if(nuser < 0 or nuser >= len(usuarios)):
         print("El usuario que usted eligio no existe, por favor intentelo de nuevo.\n")
