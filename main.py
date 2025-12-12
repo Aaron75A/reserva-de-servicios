@@ -720,7 +720,7 @@ def cancelar_reserva(user_index):
             print("La reserva que seleccionaste no existe.\n")
         else:
             reserva_eliminada = usuarios[user_index].reservas.pop(reserva_cancelar)
-            print(f"¡Tu reserva {reserva_eliminada} ha sido cancelada correctamente!\n")
+            print(f"¡Tu reserva ha sido cancelada correctamente!\n")
 
 def mostrar_reservas():   #Con esta funcion voy a mostrar las reservas de todos los servicios, me tocó aprender a usar 'enumerate'
     print("\n----->LISTA DE TODAS LAS RESERVAS<-----\n")
